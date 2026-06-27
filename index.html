@@ -13,10 +13,10 @@
 }
 
 body {
-  
   background: url("photo/1.png") center top / cover no-repeat;
-  background-attachment: fixed; 
-  min-height: 200vh; 
+  background-attachment: fixed;
+  min-height: 200vh;
+  padding: 0 20px;
 }
 
 .top-nav{
@@ -30,6 +30,7 @@ body {
   justify-content: center;
   gap: 32px;
   z-index: 999;
+  background: rgba(0,0,0,0.2);
 }
 .top-nav a{
   color: #fff;
@@ -41,11 +42,18 @@ body {
   opacity: 1;
 }
 
+.wrap-box{
+  max-width: 1200px;
+  margin: 80px auto 0;
+}
+
 .slider-box {
   width: 100%;
-  height: 100vh;
+  height: 420px;
   overflow: hidden;
   position: relative;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
  }
 
 .slider-wrap {
@@ -77,8 +85,8 @@ body {
 
 .slider-text {
   position: absolute;
-  left: 8%;
-  bottom: 100px;
+  left: 30px;
+  bottom: 40px;
   z-index: 3;
   color: white;
   padding: 18px 22px;
@@ -93,7 +101,7 @@ body {
   opacity: 0.85;
 }
 .slider-text h2 {
-  font-size: 44px;
+  font-size: 36px;
   margin: 10px 0 20px;
 }
 .slider-text button {
@@ -130,8 +138,8 @@ body {
 
 .slider-dots {
   position: absolute;
-  bottom: 40px;
-  right: 8%;
+  bottom: 30px;
+  right: 30px;
   display: flex;
   gap: 8px;
   z-index: 4;
@@ -148,10 +156,9 @@ body {
 }
 
 .main-content{
-  max-width: 1200px;
-  margin: 60px auto 150px;
+  width: 100%;
+  margin: 30px 0 150px;
   padding: 40px 30px;
- 
   background: rgba(255,255,255,0.88);
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
@@ -180,32 +187,35 @@ body {
 </div>
 
 
-<div class="slider-box">
-  <div class="slider-wrap">
-    <div class="slider-item"><img src="photo/1.png" alt="图1"></div>
-    <div class="slider-item"><img src="photo/2.png" alt="图2"></div>
-    <div class="slider-item"><img src="photo/3.png" alt="图3"></div>
-    <div class="slider-item"><img src="photo/4.png" alt="图4"></div>
-    <div class="slider-item"><img src="photo/5.png" alt="图5"></div>
-    <div class="slider-item"><img src="photo/6.png" alt="图6"></div>
-    <div class="slider-item"><img src="photo/7.png" alt="图7"></div>
-    <div class="slider-item"><img src="photo/8.png" alt="图8"></div>
+<div class="wrap-box">
+  
+  <div class="slider-box">
+    <div class="slider-wrap">
+      <div class="slider-item"><img src="photo/1.png" alt="图1"></div>
+      <div class="slider-item"><img src="photo/2.png" alt="图2"></div>
+      <div class="slider-item"><img src="photo/3.png" alt="图3"></div>
+      <div class="slider-item"><img src="photo/4.png" alt="图4"></div>
+      <div class="slider-item"><img src="photo/5.png" alt="图5"></div>
+      <div class="slider-item"><img src="photo/6.png" alt="图6"></div>
+      <div class="slider-item"><img src="photo/7.png" alt="图7"></div>
+      <div class="slider-item"><img src="photo/8.png" alt="图8"></div>
+    </div>
+    <div class="slider-mask"></div>
+    <div class="slider-text">
+      <p>MC基岩Java互通服务器</p>
+      <h2>立即加入游玩</h2>
+      <button>了解更多</button>
+    </div>
+    <button class="slider-btn prev">&lt;</button>
+    <button class="slider-btn next">&gt;</button>
+    <div class="slider-dots"></div>
   </div>
-  <div class="slider-mask"></div>
-  <div class="slider-text">
-    <p>MC基岩Java互通服务器</p>
-    <h2>立即加入游玩</h2>
-    <button>了解更多</button>
+
+  
+  <div class="main-content">
+    <h6>这是一个服务器</h6>
+    <h1>这是一个官网</h1>
   </div>
-  <button class="slider-btn prev">&lt;</button>
-  <button class="slider-btn next">&gt;</button>
-  <div class="slider-dots"></div>
-</div>
-
-
-<div class="main-content">
-  <h6>这是一个服务器</h6>
-  <h1>这是一个官网</h1>
 </div>
 
 <script>
