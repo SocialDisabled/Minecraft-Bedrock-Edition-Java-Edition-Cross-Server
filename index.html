@@ -17,6 +17,8 @@ body {
   background-attachment: fixed;
   min-height: 200vh;
   padding: 0 20px;
+ 
+  padding-top: 70px;
 }
 
 .top-nav{
@@ -31,6 +33,8 @@ body {
   gap: 32px;
   z-index: 999;
   background: rgba(0,0,0,0.2);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 .top-nav a{
   color: #fff;
@@ -44,7 +48,7 @@ body {
 
 .wrap-box{
   max-width: 1200px;
-  margin: 80px auto 0;
+  margin: 20px auto 0;
 }
 
 .slider-box {
@@ -77,8 +81,9 @@ body {
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 40%;
-  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+  height: 45%;
+  
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 60%, transparent 100%);
   z-index: 2;
   pointer-events: none;
 }
@@ -104,16 +109,18 @@ body {
   font-size: 36px;
   margin: 10px 0 20px;
 }
-.slider-text button {
+
+.slider-text .btn-link {
+  display: inline-block;
   padding: 11px 28px;
   border-radius: 30px;
-  border: none;
   background: #ffd288;
   font-size: 16px;
   cursor: pointer;
   color: #000;
+  text-decoration: none;
 }
-.slider-text button:hover{
+.slider-text .btn-link:hover{
   background: #ffdfaa;
 }
 
@@ -157,7 +164,7 @@ body {
 
 .main-content{
   width: 100%;
-  margin: 30px 0 150px;
+  margin: 30px 0 200px;
   padding: 40px 30px;
   background: rgba(255,255,255,0.88);
   border-radius: 16px;
@@ -204,8 +211,8 @@ body {
     <div class="slider-text">
       <p>MC基岩Java互通服务器</p>
       <h2>立即加入游玩</h2>
-      <button><a href="https://www.bilibili.com/video/BV1GJ411x7h7/?spm_id_from=333.337.search-card.all.click&vd_source=fae5bc83340c2c9eb6ce230b387ed8ff" style="text-decoration:none; color: black;" target="_blank">了解更多
-</a></button>
+     
+      <a class="btn-link" href="https://www.bilibili.com/video/BV1GJ411x7h7/?spm_id_from=333.337.search-card.all.click&vd_source=fae5bc83340c2c9eb6ce230b387ed8ff" target="_blank">了解更多</a>
     </div>
     <button class="slider-btn prev">&lt;</button>
     <button class="slider-btn next">&gt;</button>
@@ -220,7 +227,6 @@ body {
 </div>
 
 <script>
-
 const total = 8;
 let index = 0;
 const wrap = document.querySelector('.slider-wrap');
@@ -228,7 +234,6 @@ const dotsBox = document.querySelector('.slider-dots');
 const prevBtn = document.querySelector('.prev');
 const nextBtn = document.querySelector('.next');
 let timer;
-
 
 for(let i=0; i<total; i++){
   const dot = document.createElement('span');
@@ -242,13 +247,11 @@ for(let i=0; i<total; i++){
 }
 const dots = document.querySelectorAll('.dot');
 
-
 function changeSlide(){
   wrap.style.transform = `translateX(-${index * 100 / total}%)`;
   dots.forEach(d=>d.classList.remove('active'));
   dots[index].classList.add('active');
 }
-
 
 function next(){
   index++;
@@ -262,16 +265,13 @@ function prev(){
   changeSlide();
 }
 
-
 nextBtn.onclick = next;
 prevBtn.onclick = prev;
-
 
 function autoPlay(){
   timer = setInterval(next, 3000);
 }
 autoPlay();
-
 
 document.querySelector('.slider-box').onmouseenter = ()=> clearInterval(timer);
 document.querySelector('.slider-box').onmouseleave = autoPlay;
