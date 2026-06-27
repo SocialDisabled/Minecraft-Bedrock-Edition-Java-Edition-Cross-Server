@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MC基岩JAVA互通服务器</title>
+
+<link rel="preload" href="photo/1.png" as="image">
 <style>
 *{
   margin: 0;
@@ -12,12 +14,16 @@
   font-family: system-ui, sans-serif;
 }
 
-body {
+
+.bg-fixed {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background: url("photo/1.png") center top / cover no-repeat;
-  background-attachment: fixed;
+}
+body {
   min-height: 200vh;
   padding: 0 20px;
- 
   padding-top: 70px;
 }
 
@@ -82,7 +88,6 @@ body {
   bottom: 0;
   width: 100%;
   height: 45%;
-  
   background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 60%, transparent 100%);
   z-index: 2;
   pointer-events: none;
@@ -109,7 +114,6 @@ body {
   font-size: 36px;
   margin: 10px 0 20px;
 }
-
 .slider-text .btn-link {
   display: inline-block;
   padding: 11px 28px;
@@ -184,6 +188,8 @@ body {
 </head>
 <body>
 
+<div class="bg-fixed"></div>
+
 <div class="top-nav">
   <a href="">游戏</a>
   <a href="">视频</a>
@@ -198,21 +204,22 @@ body {
   
   <div class="slider-box">
     <div class="slider-wrap">
-      <div class="slider-item"><img src="photo/1.png" alt="图1"></div>
-      <div class="slider-item"><img src="photo/2.png" alt="图2"></div>
-      <div class="slider-item"><img src="photo/3.png" alt="图3"></div>
-      <div class="slider-item"><img src="photo/4.png" alt="图4"></div>
-      <div class="slider-item"><img src="photo/5.png" alt="图5"></div>
-      <div class="slider-item"><img src="photo/6.png" alt="图6"></div>
-      <div class="slider-item"><img src="photo/7.png" alt="图7"></div>
-      <div class="slider-item"><img src="photo/8.png" alt="图8"></div>
+     
+      <div class="slider-item"><img loading="lazy" src="photo/1.png" alt="图1"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/2.png" alt="图2"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/3.png" alt="图3"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/4.png" alt="图4"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/5.png" alt="图5"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/6.png" alt="图6"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/7.png" alt="图7"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/8.png" alt="图8"></div>
     </div>
     <div class="slider-mask"></div>
     <div class="slider-text">
       <p>MC基岩Java互通服务器</p>
       <h2>立即加入游玩</h2>
      
-      <a class="btn-link" href="https://www.bilibili.com/video/BV1GJ411x7h7/?spm_id_from=333.337.search-card.all.click&vd_source=fae5bc83340c2c9eb6ce230b387ed8ff" target="_blank">了解更多</a>
+      <a class="btn-link" href="#main">了解更多</a>
     </div>
     <button class="slider-btn prev">&lt;</button>
     <button class="slider-btn next">&gt;</button>
@@ -220,7 +227,7 @@ body {
   </div>
 
   
-  <div class="main-content">
+  <div id="main" class="main-content">
     <h6>这是一个服务器</h6>
     <h1>这是一个官网</h1>
   </div>
@@ -275,6 +282,28 @@ autoPlay();
 
 document.querySelector('.slider-box').onmouseenter = ()=> clearInterval(timer);
 document.querySelector('.slider-box').onmouseleave = autoPlay;
+
+
+const btn = document.querySelector('.btn-link');
+let clickCount = 0;
+let clickTimer = null;
+const rickUrl = 'https://www.bilibili.com/video/BV1GJ411x7h7/?spm_id_from=333.337.search-card.all.click&vd_source=fae5bc83340c2c9eb6ce230b387ed8ff';
+
+btn.addEventListener('click', function(e) {
+  clickCount++;
+  clearTimeout(clickTimer);
+  clickTimer = setTimeout(() => {
+    clickCount = 0;
+  }, 3000);
+
+  if(clickCount >= 3) {
+    window.open(rickUrl, '_blank');
+    clickCount = 0;
+  } else {
+    e.preventDefault();
+    document.querySelector('#main').scrollIntoView({behavior: 'smooth'});
+  }
+});
 </script>
 </body>
 </html>
