@@ -33,12 +33,16 @@
 .top-nav a:hover{
   opacity: 1;
 }
-/* 轮播容器：大屏最高720px，手机最小60vh，解决电脑全屏过大 */
+/* 全屏轮播容器 核心fixed视差 */
 .slider-box {
   width: 100%;
   height: 100vh;
   overflow: hidden;
   position: relative;
+  /* 关键：背景固定，滚动页面图片不移动 */
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center top;
  }
 /* 图片滑动轨道 */
 .slider-wrap {
@@ -57,8 +61,7 @@
   object-fit: cover;
   background-position: center top;
 }
-/* 遮罩修复：固定在底部，渐变从下往上淡，不会整张图发灰 */
-<div class="slider-mask"></div>
+/* 渐变遮罩 */
 .slider-mask {
   position: absolute;
   left: 0;
@@ -79,8 +82,8 @@
   padding: 18px 22px;
   border-radius: 16px;
   background: rgba(0,0,0,0.45);
-  backdrop-filter: blir(12px);
-  -webkit-backdrop-filter: bluer(2px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 .slider-text p{
   font-size: 16px;
@@ -141,12 +144,13 @@
 .dot.active {
   background: #fff;
 }
-/* 页面下方正文内容 */
+/* 页面下方正文内容：上边距=轮播高度，不会顶上去盖住轮播 */
 .main-content{
   max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 40px 20px;
   min-height: 100vh;
+  margin-top: 100vh;
 }
 .main-content h6{
   color: #666;
@@ -158,38 +162,20 @@
   color: #222;
   margin-bottom: 20px;
 }
-/* 固定背景 */
-.banner-box{
-  background-attachment: fixed;
-  background-siz: cover;
-  background-position: center;
-  width: 100%
-  height: 600px;
-  poosition: relative;
-  overflow: hidden;
-}
-.banner-box{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 600px;
-  z-index: 99;
- }
 </style>
 </head>
 <body>
-<!-- 顶部导航（清理a标签多余空格） -->
+<!-- 顶部导航 -->
 <div class="top-nav">
-  <a href="">游戏</a >
-  <a href=" ">视频</a >
-  <a href="#">下载</a >
-  <a href="#">关于</a >
-  <a href="#">支持</a >
-  <a href="#">获取启动器</a >
+  <a href="">游戏</a>
+  <a href="">视频</a>
+  <a href="#">下载</a>
+  <a href="#">关于</a>
+  <a href="#">支持</a>
+  <a href="#">获取启动器</a>
 </div>
 
-<!-- GTA风格全屏轮播（img无多余空格） -->
+<!-- 全屏轮播 -->
 <div class="slider-box">
   <div class="slider-wrap">
     <div class="slider-item"><img src="photo/1.png" alt="图1"></div>
@@ -205,7 +191,7 @@
   <div class="slider-mask"></div>
   <!-- 左下角文字按钮 -->
   <div class="slider-text">
-    <p>MC基岩Java互通服务器</p >
+    <p>MC基岩Java互通服务器</p>
     <h2>立即加入游玩</h2>
     <button>了解更多</button>
   </div>
@@ -216,7 +202,7 @@
   <div class="slider-dots"></div>
 </div>
 
-<!-- 页面原有正文内容 -->
+<!-- 页面正文 -->
 <div class="main-content">
   <h6>这是一个服务器</h6>
   <h1>这是一个官网</h1>
