@@ -71,6 +71,7 @@ body {
   aspect-ratio: 16/9;
   box-shadow: 0 2px 12px rgba(0,0,0,0.15);
   transition: transform 0.2s ease;
+  cursor: pointer;
 }
 .gallery-item:hover{
   transform: scale(1.03);
@@ -164,6 +165,12 @@ body {
   </div>
 </div>
 
+<!-- 灯箱容器 -->
+<div class="lightbox" id="lightbox">
+  <span class="lightbox-close" id="lightboxClose">&times;</span>
+  <img class="lightbox-img" id="lightboxImg" src="" alt="大图预览">
+</div>
+
 <script>
 const imgList = [
   "photo/LXHCY.webp","photo/11.webp","photo/22.webp","photo/33.webp","photo/44.webp",
@@ -177,7 +184,7 @@ const container = document.getElementById('galleryContainer');
 const prevBtn = document.getElementById('prevPage');
 const nextBtn = document.getElementById('nextPage');
 const pageInfo = document.getElementById('pageInfo');
-// 灯箱元素
+// 灯箱元素（此时DOM已加载完成，能正常获取）
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
 const lightboxClose = document.getElementById('lightboxClose');
@@ -235,10 +242,6 @@ nextBtn.onclick = ()=>{
 
 renderGallery();
 </script>
-<!-- 灯箱容器 -->
-<div class="lightbox" id="lightbox">
-  <span class="lightbox-close" id="lightboxClose">&times;</span>
-  < img class="lightbox-img" id="lightboxImg" src="" alt="大图预览">
-</div>
+
 </body>
 </html>
