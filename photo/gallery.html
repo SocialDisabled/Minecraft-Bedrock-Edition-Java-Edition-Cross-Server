@@ -20,7 +20,7 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: url("photo/44.webp") center top / cover no-repeat;
+  background: url("44.webp") center top / cover no-repeat;
 }
 body {
   min-height: 100vh;
@@ -276,11 +276,11 @@ body {
 <div class="bg-fixed"></div>
 
 <div class="top-nav">
-  <a href="gallery.html">图片</a>
+  <a href="photo/gallery.html">图片</a>
   <a href="">视频</a>
   <a href="">下载</a>
   <a href="#">支持</a>
-  <a href="index.html">主页</a>
+  <a href="../index.html">主页</a>
   <a id="moreToggle">更多</a>
 </div>
 
@@ -315,9 +315,9 @@ body {
 
 <script>
 const imgList = [
-  "photo/LXHCY.webp","photo/11.webp","photo/22.webp","photo/33.webp","photo/44.webp",
-  "photo/55.webp","photo/66.webp","photo/77.webp","photo/88.webp","photo/LXHCY.webp","photo/11.webp","photo/22.webp","photo/33.webp","photo/44.webp",
-  "photo/55.webp","photo/66.webp","photo/77.webp","photo/88.webp",
+  "LXHCY.webp","11.webp","22.webp","33.webp","44.webp",
+  "55.webp","66.webp","77.webp","88.webp","LXHCY.webp","11.webp","22.webp","33.webp","44.webp",
+  "55.webp","66.webp","77.webp","88.webp",
   
 ];
 const perPage = 12;
@@ -384,7 +384,7 @@ nextBtn.onclick = ()=>{
 
 renderGallery();
 
-// ===== 全屏下拉菜单逻辑 =====
+
 const moreToggle = document.getElementById('moreToggle');
 const fullDropdown = document.getElementById('fullDropdown');
 const leftItems = document.querySelectorAll('.full-dropdown-item');
