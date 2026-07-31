@@ -1,9 +1,3 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0">
 <h1>这里什么都没有</h1>
 <h1>什么都没有哦，别看了</h1>
 </head>
