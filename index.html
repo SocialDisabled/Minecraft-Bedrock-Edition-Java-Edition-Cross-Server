@@ -1,19 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Kurlet-库乐特</title>
+<meta name="description" content="Kurlet 库乐特——我们的游戏与联机服务器主页,提供 MC、泰拉瑞亚、星露谷、饥荒联机服务。">
 <link rel="icon" type="image/x-icon" href="/kurlet.ico">
 <link rel="canonical" href="https://kurlet.com/">
-<link rel="preload" href="photo/44.webp" as="image">
 <link rel="preload" href="photo/11.webp" as="image">
-<link rel="preload" href="photo/22.webp" as="image">
-<link rel="preload" href="photo/33.webp" as="image">
-<link rel="preload" href="photo/55.webp" as="image">
-<link rel="preload" href="photo/66.webp" as="image">
-<link rel="preload" href="photo/77.webp" as="image">
-<link rel="preload" href="photo/88.webp" as="image">
 
 <style>
 *{
@@ -30,7 +24,7 @@
   background: url("photo/44.webp") center top / cover no-repeat;
 }
 body {
-  min-height: 200vh;
+  min-height: 100vh;
   padding: 0 20px;
   padding-top: 70px;
 }
@@ -183,27 +177,40 @@ body {
 
 @media (max-width: 720px) {
   .slider-box {
-    height: 520px;
-  }
-  .slider-text h2 {
-    font-size: 24px !important;
-  }
-  .slider-text p {
-    font-size: 13px !important;
+    height: 280px;
   }
   .slider-text {
-    padding: 12px 16px;
+    left: 12px;
+    bottom: 12px;
+    width: 60% !important;
+    height: auto !important;
+    padding: 10px 14px;
+  }
+  .slider-text h2 {
+    font-size: 18px !important;
+    margin: 4px 0 8px;
+  }
+  .slider-text p {
+    font-size: 12px !important;
+    margin-bottom: 4px;
+  }
+  .slider-text .btn-link {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+  .slider-mask {
+    height: 55%;
   }
 }
 
 .slider-wrap {
-  width: 800%;
+  width: 900%;
   height: 100%;
   display: flex;
   transition: 0.6s ease;
 }
 .slider-item {
-  width: 12.5%;
+  width: 11.11%;
   height: 100%;
 }
 .slider-item img {
@@ -234,7 +241,7 @@ body {
   height: 200px;
   padding: 20px 30px;
   border-radius: 16px;
- background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("photo/11.webp") center / cover no-repeat;
+  background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("kurlet.ico") center / cover no-repeat;
 }
 .slider-text p{
   font-size: 16px;
@@ -315,6 +322,14 @@ body {
   color: #222;
   margin-bottom: 20px;
 }
+.main-content p {
+  font-size: 17px;
+  line-height: 1.9;
+  color: #333;
+  margin-bottom: 18px;
+  text-indent: 2em;
+  text-align: justify;
+}
 .main-content video {
   width: 100%;
   border-radius: 12px;
@@ -387,6 +402,68 @@ body {
   color: rgba(255,255,255,0.7);
   font-size: 12px;
 }
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.25s ease;
+}
+.lightbox.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.lightbox img {
+  max-width: 96vw;
+  max-height: 92vh;
+  border-radius: 8px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  object-fit: contain;
+}
+.lightbox-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+.lightbox-close:hover {
+  background: rgba(255,255,255,0.3);
+}
+.lightbox-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 60px;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  font-size: 26px;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 8px;
+}
+.lightbox-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+.lightbox-prev { left: 6px; }
+.lightbox-next { right: 6px; }
 </style>
 </head>
 <body>
@@ -433,6 +510,7 @@ body {
       <div class="slider-item"><img loading="lazy" src="photo/66.webp" alt="图6"></div>
       <div class="slider-item"><img loading="lazy" src="photo/77.webp" alt="图7"></div>
       <div class="slider-item"><img loading="lazy" src="photo/88.webp" alt="图8"></div>
+      <div class="slider-item"><img loading="lazy" src="photo/11.webp" alt="图1"></div>
     </div>
     <div class="slider-mask"></div>
     <div class="slider-text">
@@ -450,21 +528,59 @@ body {
   <div id="main" class="main-content">
     <h1>这是一个引导页面</h1>
     <h3>这是一个官网</h3>
-    <h1>天不生我唐人海，万古如长夜</h1>
+    <h2>天不生我唐人海，万古如长夜</h2>
     <h3>天不生，妈妈生的</h3>
-    <a href="https://mc.kurlet.com" target="_blank">测试中！！！！
-</a>
+    <a href="https://mc.kurlet.com" target="_blank">测试中！！！！</a>
   </div>
 </div>
 
 <div class="egg-modal" id="eggModal">
   <div class="egg-close" id="eggClose">&times;</div>
-  <video id="eggVideo" src="video/rickroll.mp4" controls></video>
+</div>
+
+
+<div class="lightbox" id="lightbox">  <div class="lightbox-close" id="lightboxClose">&times;</div>
+  <button class="lightbox-btn lightbox-prev" id="lightboxPrev">&lt;</button>
+  <img id="lightboxImg" alt="大图">
+  <button class="lightbox-btn lightbox-next" id="lightboxNext">&gt;</button>
 </div>
 
 <script>
 const total = 8;
+const TOTAL_ITEMS = total + 1; // 多一张克隆的第一张图(无缝循环用)
 let index = 0;
+function changeSlide(animate = true){
+  wrap.style.transition = animate ? '0.6s ease' : 'none';
+  wrap.style.transform = `translateX(-${index * 11.11}%)`;
+  dots.forEach(d=>d.classList.remove('active'));
+  dots[index % total].classList.add('active');
+}
+
+function next(){
+  index++;
+  if(index >= TOTAL_ITEMS) index = 0;
+  changeSlide(true);
+  if(index === TOTAL_ITEMS - 1){
+    setTimeout(()=>{
+      index = 0;
+      changeSlide(false);
+    }, 620);
+  }
+}
+
+function prev(){
+  if(index === 0){
+    index = TOTAL_ITEMS - 1;
+    changeSlide(false);
+    setTimeout(()=>{
+      index = TOTAL_ITEMS - 2;
+      changeSlide(true);
+    }, 30);
+  } else {
+    index--;
+    changeSlide(true);
+  }
+}
 const wrap = document.querySelector('.slider-wrap');
 const dotsBox = document.querySelector('.slider-dots');
 const prevBtn = document.querySelector('.prev');
@@ -483,44 +599,82 @@ for(let i=0; i<total; i++){
 }
 const dots = document.querySelectorAll('.dot');
 
-function changeSlide(){
-  wrap.style.transform = `translateX(-${index * 12.5}%)`;
-  dots.forEach(d=>d.classList.remove('active'));
-  dots[index].classList.add('active');
-}
-
-function next(){
-  index++;
-  if(index >= total) index = 0;
-  changeSlide();
-}
-
-function prev(){
-  index--;
-  if(index < 0) index = total - 1;
-  changeSlide();
-}
-
 nextBtn.onclick = next;
 prevBtn.onclick = prev;
 
+
+let lightboxOpen = false;
 function autoPlay(){
-  timer = setInterval(next, 3000);
+  clearInterval(timer);
+  timer = setInterval(next, 5000);
 }
 autoPlay();
 
-document.querySelector('.slider-box').onmouseenter = ()=> clearInterval(timer);
-document.querySelector('.slider-box').onmouseleave = autoPlay;
+const sliderBox = document.querySelector('.slider-box');
+sliderBox.addEventListener('mouseenter', () => {
+  if(!lightboxOpen) clearInterval(timer);
+});
+sliderBox.addEventListener('mouseleave', () => {
+  if(!lightboxOpen) autoPlay();
+});
+
+
+const sliderImgs = document.querySelectorAll('.slider-item img');
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = document.getElementById('lightboxImg');
+const lightboxClose = document.getElementById('lightboxClose');
+const lightboxPrev = document.getElementById('lightboxPrev');
+const lightboxNext = document.getElementById('lightboxNext');
+
+function openLightbox(){
+  lightboxOpen = true;
+  lightboxImg.src = sliderImgs[index].src;
+  lightbox.classList.add('show');
+  clearInterval(timer);
+}
+function closeLightbox(){
+  lightboxOpen = false;
+  lightbox.classList.remove('show');
+  autoPlay();
+}
+function goLightboxPrev(){
+  index = (index - 1 + total) % total;
+  changeSlide();
+  lightboxImg.src = sliderImgs[index].src;
+}
+function goLightboxNext(){
+  index = (index + 1) % total;
+  changeSlide();
+  lightboxImg.src = sliderImgs[index].src;
+}
+
+wrap.addEventListener('click', openLightbox);
+lightboxClose.addEventListener('click', closeLightbox);
+lightboxPrev.addEventListener('click', goLightboxPrev);
+lightboxNext.addEventListener('click', goLightboxNext);
+lightbox.addEventListener('click', e => {
+  if(e.target === lightbox) closeLightbox();
+});
+document.addEventListener('keydown', e => {
+  if(!lightbox.classList.contains('show')) return;
+  if(e.key === 'Escape') closeLightbox();
+  if(e.key === 'ArrowLeft') goLightboxPrev();
+  if(e.key === 'ArrowRight') goLightboxNext();
+});
 
 const btn = document.querySelector('.btn-link');
 const eggModal = document.getElementById('eggModal');
-const eggVideo = document.getElementById('eggVideo');
 const eggClose = document.getElementById('eggClose');
 
 let clickCount = 0;
 let clickTimer = null;
+let eggVideo = null;
 
 function openEggVideo() {
+  eggVideo = document.createElement('video');
+  eggVideo.controls = true;
+  eggVideo.src = 'video/rickroll.mp4';
+  eggModal.appendChild(eggVideo);
   eggModal.classList.add('show');
   eggVideo.play().catch(err=>console.log("播放失败:",err));
   clickCount = 0;
@@ -528,8 +682,12 @@ function openEggVideo() {
 
 function closeEggVideo() {
   eggModal.classList.remove('show');
-  eggVideo.pause();
-  eggVideo.currentTime = 0;
+  if(eggVideo){
+    eggVideo.pause();
+    eggVideo.src = '';
+    eggVideo.remove();
+    eggVideo = null;
+  }
 }
 
 btn.addEventListener('click', function(e) {
@@ -544,7 +702,9 @@ btn.addEventListener('click', function(e) {
     openEggVideo();
   } else {
     e.preventDefault();
-    document.querySelector('#main').scrollIntoView({ behavior: 'smooth' });
+    const main = document.querySelector('#main');
+    const top = main.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top, behavior: 'smooth' });
   }
 });
 

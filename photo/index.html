@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Kurlet-库乐特</title>
+<meta name="description" content="Kurlet 库乐特——服务器与游戏截图合集,浏览 MC、泰拉瑞亚等联机服务器的精彩瞬间。">
 <link rel="canonical" href="https://kurlet.com/">
 <link rel="icon" type="image/x-icon" href="/kurlet.ico">
-<link rel="canonical" href="https://kurlet.com/">
 <link rel="preload" href="44.webp" as="image">
 <style>
 *{
@@ -238,14 +238,13 @@ body {
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
 }
 .lightbox.active {
   display: flex;
 }
 .lightbox-img {
-  max-width: calc(100% - 4rem);
-  max-height: calc(100vh - 4rem);
+  max-width: 96vw;
+  max-height: 92vh;
   border-radius: 8px;
   object-fit: contain;
   box-shadow: 0 0 40px #000;
@@ -270,6 +269,26 @@ body {
 .lightbox-close:hover {
   background: rgba(255,255,255,0.3);
 }
+.lightbox-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 60px;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  font-size: 26px;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+  user-select: none;
+  border-radius: 8px;
+}
+.lightbox-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+.lightbox-prev { left: 6px; }
+.lightbox-next { right: 6px; }
 </style>
 </head>
 <body>
@@ -277,8 +296,8 @@ body {
 
 <div class="top-nav">
   <a href="https://kurlet.com/photo">图片</a>
-  <a href="">视频</a>
-  <a href="">下载</a>
+  <a href="#">视频</a>
+  <a href="#">下载</a>
   <a href="#">支持</a>
   <a href="https://kurlet.com/">主页</a>
   <a id="moreToggle">更多</a>
@@ -310,15 +329,15 @@ body {
 
 <div class="lightbox" id="lightbox">
   <span class="lightbox-close" id="lightboxClose">&times;</span>
+  <button class="lightbox-btn lightbox-prev" id="lightboxPrev">&lt;</button>
   <img class="lightbox-img" id="lightboxImg" src="" alt="大图预览">
+  <button class="lightbox-btn lightbox-next" id="lightboxNext">&gt;</button>
 </div>
 
 <script>
 const imgList = [
-  "LXHCY.webp","11.webp","22.webp","33.webp","44.webp",
-  "55.webp","66.webp","77.webp","88.webp","LXHCY.webp","11.webp","22.webp","33.webp","44.webp",
-  "55.webp","66.webp","77.webp","88.webp",
-  
+  "11.webp","22.webp","33.webp","44.webp",
+  "55.webp","66.webp","77.webp","88.webp","LXHCY.webp"
 ];
 const perPage = 12;
 let currentPage = 1;
@@ -332,6 +351,29 @@ const pageInfo = document.getElementById('pageInfo');
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
 const lightboxClose = document.getElementById('lightboxClose');
+const lightboxPrev = document.getElementById('lightboxPrev');
+const lightboxNext = document.getElementById('lightboxNext');
+let lightboxIndex = 0;
+
+function openLightbox(idx){
+  lightboxIndex = idx;
+  lightboxImg.src = imgList[idx];
+  lightbox.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox(){
+  lightbox.classList.remove('active');
+  lightboxImg.src = '';
+  document.body.style.overflow = '';
+}
+function goLightboxPrev(){
+  lightboxIndex = (lightboxIndex - 1 + imgList.length) % imgList.length;
+  lightboxImg.src = imgList[lightboxIndex];
+}
+function goLightboxNext(){
+  lightboxIndex = (lightboxIndex + 1) % imgList.length;
+  lightboxImg.src = imgList[lightboxIndex];
+}
 
 function renderGallery(){
   container.innerHTML = '';
@@ -339,7 +381,7 @@ function renderGallery(){
   const end = start + perPage;
   const pageImgs = imgList.slice(start, end);
 
-  pageImgs.forEach(src=>{
+  pageImgs.forEach((src, i)=>{
     const div = document.createElement('div');
     div.className = 'gallery-item';
     const img = document.createElement('img');
@@ -348,9 +390,7 @@ function renderGallery(){
     img.alt = '服务器图片';
     
     img.addEventListener('click', ()=>{
-      lightboxImg.src = src;
-      lightbox.classList.add('active');
-      document.body.style.overflow = 'hidden'; 
+      openLightbox(start + i);
     });
     div.appendChild(img);
     container.appendChild(div);
@@ -368,11 +408,16 @@ function closeLightbox(){
 }
 
 lightboxClose.addEventListener('click', closeLightbox);
+lightboxPrev.addEventListener('click', goLightboxPrev);
+lightboxNext.addEventListener('click', goLightboxNext);
 lightbox.addEventListener('click', (e)=>{
   if(e.target === lightbox) closeLightbox();
 });
 document.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
+  if(!lightbox.classList.contains('active')) return;
+  if(e.key === 'Escape') closeLightbox();
+  if(e.key === 'ArrowLeft') goLightboxPrev();
+  if(e.key === 'ArrowRight') goLightboxNext();
 });
 
 prevBtn.onclick = ()=>{
