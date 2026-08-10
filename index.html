@@ -25,7 +25,7 @@
 }
 body {
   min-height: 100vh;
-  padding: 0 20px;
+  padding: 0;
   padding-top: 70px;
 }
 
@@ -162,14 +162,14 @@ body {
 }
 
 .wrap-box{
-  max-width: 92vw;
+  width: 100%;
   margin: 20px auto 0;
 }
 
 .slider-box {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 860px;
+  height: calc(100vh - 90px);
+  aspect-ratio: auto;
   overflow: hidden;
   position: relative;
   border-radius: 16px;
