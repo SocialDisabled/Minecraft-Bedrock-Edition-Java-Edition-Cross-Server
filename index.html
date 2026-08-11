@@ -26,7 +26,6 @@
 body {
   min-height: 100vh;
   padding: 0;
-  padding-top: 70px;
 }
 
 .top-nav{
@@ -43,6 +42,11 @@ body {
   background: rgba(0,0,0,0.2);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  transform: translateY(-100%);
+  transition: transform 0.35s ease;
+}
+.top-nav.show {
+  transform: translateY(0);
 }
 .top-nav a{
   color: #fff;
@@ -163,17 +167,17 @@ body {
 
 .wrap-box{
   width: 100%;
-  margin: 20px auto 0;
+  margin: 0 auto;
 }
 
 .slider-box {
   width: 100%;
-  height: calc(100vh - 90px);
+  height: 100vh;
   aspect-ratio: auto;
   overflow: hidden;
   position: relative;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  border-radius: 0;
+  box-shadow: none;
  }
 
 @media (max-width: 720px) {
@@ -184,9 +188,6 @@ body {
   .slider-text {
     left: 12px;
     bottom: 12px;
-    width: 60% !important;
-    height: auto !important;
-    padding: 10px 14px;
   }
   .slider-text h2 {
     font-size: 18px !important;
@@ -234,24 +235,27 @@ body {
 
 .slider-text {
   position: absolute;
-  left: 20px;
-  bottom: 30px;
+  left: 30px;
+  bottom: 40px;
   z-index: 3;
   color: white;
   text-align: left;
-  width: 300px;
-  height: 200px;
-  padding: 20px 30px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  max-width: 60%;
+  padding: 30px 40px;
   border-radius: 16px;
-  background: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("kurlet.ico") center / cover no-repeat;
+  /* 背景图备 */
+  /* background: url("kurlet.ico") center / cover no-repeat; */
 }
 .slider-text p{
   font-size: 16px;
+  font-weight: 700;
   margin-bottom: 8px;
   opacity: 0.85;
 }
 .slider-text h2 {
   font-size: 36px;
+  font-weight: 700;
   margin: 10px 0 20px;
 }
 .slider-text .btn-link {
@@ -548,6 +552,15 @@ body {
 </div>
 
 <script>
+const topNav = document.querySelector('.top-nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 30) {
+    topNav.classList.add('show');
+  } else {
+    topNav.classList.remove('show');
+  }
+});
+
 const total = 8;
 const TOTAL_ITEMS = total + 1; // 多一张克隆的第一张图(无缝循环用)
 let index = 0;
@@ -611,14 +624,6 @@ function autoPlay(){
   timer = setInterval(next, 5000);
 }
 autoPlay();
-
-const sliderBox = document.querySelector('.slider-box');
-sliderBox.addEventListener('mouseenter', () => {
-  if(!lightboxOpen) clearInterval(timer);
-});
-sliderBox.addEventListener('mouseleave', () => {
-  if(!lightboxOpen) autoPlay();
-});
 
 
 const sliderImgs = document.querySelectorAll('.slider-item img');
