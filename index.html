@@ -21,7 +21,7 @@
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: url("photo/44.webp") center top / cover no-repeat;
+  background: url("photo/44.webp") 30% top / cover no-repeat;
 }
 body {
   min-height: 100vh;
@@ -181,6 +181,9 @@ body {
  }
 
 @media (max-width: 720px) {
+  .page1 img {
+    object-position: 30% center;
+  }
   .slider-box {
     aspect-ratio: auto;
     height: 100svh;
@@ -475,6 +478,7 @@ body {
 html, body {
   overflow: auto;
   height: auto;
+  overscroll-behavior: none;
 }
 body {
   padding: 0;
@@ -729,21 +733,25 @@ if(isTouch){
     const curY = e.touches[0].clientY;
     const dy = curY - touchPrevY;
     touchPrevY = curY;
-    window.scrollTo(0, window.scrollY - dy * 0.5);
+    const maxY = (PAGE_COUNT - 1) * pageHeight();
+    let target = window.scrollY - dy * 0.5;
+    target = Math.max(0, Math.min(maxY, target));
+    window.scrollTo(0, target);
   }, { passive: false });
 
   window.addEventListener('touchend', (e) => {
     if(!touchLocked) return;
     touchLocked = false;
-    if(isScrolling) return;
     const vy = e.changedTouches[0].clientY - touchStartY;
     const cur = getCurrentPage();
+    // 松手必定吸附:取消可能残留的滚动动画,直接切
+    if(scrollAnimId) cancelAnimationFrame(scrollAnimId);
+    scrollAnimId = null;
     isScrolling = true;
     if(Math.abs(vy) > 40) {
       if(vy < 0) snapToPage(cur + 1);
       else snapToPage(cur - 1);
     } else {
-      // 没滑够,吸附回当前页
       snapToPage(cur);
     }
   }, { passive: true });
