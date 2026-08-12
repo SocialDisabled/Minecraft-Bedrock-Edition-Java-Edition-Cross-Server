@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Kurlet-库乐特</title>
-<meta name="description" content="Kurlet 库乐特——我们的游戏与联机服务器主页,提供 MC、泰拉瑞亚、星露谷、饥荒联机服务。">
+<meta name="description" content="Kurlet—库乐特——简简单单没什么亮点的小破站，1一些普通到不能再普通的功能。">
 <link rel="icon" type="image/x-icon" href="/kurlet.ico">
 <link rel="canonical" href="https://kurlet.com/">
 <link rel="preload" href="photo/11.webp" as="image">
@@ -172,7 +172,7 @@ body {
 
 .slider-box {
   width: 100%;
-  height: 100vh;
+  height: 100svh;
   aspect-ratio: auto;
   overflow: hidden;
   position: relative;
@@ -183,7 +183,7 @@ body {
 @media (max-width: 720px) {
   .slider-box {
     aspect-ratio: auto;
-    height: 280px;
+    height: 100svh;
   }
   .slider-text {
     left: 12px;
@@ -470,6 +470,98 @@ body {
 }
 .lightbox-prev { left: 6px; }
 .lightbox-next { right: 6px; }
+
+/* ============ 分页布局 ============ */
+html, body {
+  overflow: auto;
+  height: auto;
+}
+body {
+  padding: 0;
+}
+.page {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  display: block;
+}
+.page1 {
+  position: relative;
+}
+.page1 img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.page1-text {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+  padding-top: 30vh;
+}
+.page1-text h1 {
+  font-size: 72px;
+  letter-spacing: 12px;
+  animation: breatheMove 4s ease-in-out infinite;
+}
+.page1-text p {
+  font-size: 20px;
+  letter-spacing: 6px;
+  opacity: 0.85;
+  animation: breatheOpacity 4s ease-in-out infinite;
+}
+@keyframes breatheMove {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(-10px); opacity: 0.7; }
+}
+@keyframes breatheOpacity {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.55; }
+}
+
+.page1-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(60,60,60,0.35);
+  z-index: 1;
+}
+
+.scroll-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 28px;
+  z-index: 5;
+  animation: bounce 1.6s ease-in-out infinite;
+  pointer-events: none;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+}
+@keyframes bounce {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, 12px); }
+}
+
+.wrap-box {
+  width: 100%;
+  margin: 0;
+}
+
+.page3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.page3 .main-content {
+  width: 85%;
+  max-width: 1200px;
+  margin: 0;
+}
 </style>
 </head>
 <body>
@@ -503,7 +595,17 @@ body {
   </div>
 </div>
 
-<div class="wrap-box">
+<div class="page page1" id="page1">
+  <img src="photo/44.webp" alt="首屏">
+  <div class="page1-mask"></div>
+  <div class="page1-text">
+    <h1>Kurlet</h1>
+    <p>库乐特</p>
+  </div>
+  <div class="scroll-arrow">&#9660;</div>
+</div>
+
+<div class="wrap-box page page2" id="page2">
   
   <div class="slider-box">
     <div class="slider-wrap">
@@ -528,9 +630,11 @@ body {
     <button class="slider-btn prev">&lt;</button>
     <button class="slider-btn next">&gt;</button>
     <div class="slider-dots"></div>
+    <div class="scroll-arrow">&#9660;</div>
   </div>
+</div>
 
-  
+<div class="page page3" id="page3">
   <div id="main" class="main-content">
     <h1>这是一个引导页面</h1>
     <h3>这是一个官网</h3>
@@ -538,6 +642,7 @@ body {
     <h3>天不生，妈妈生的</h3>
     <a href="https://mc.kurlet.com" target="_blank">测试中！！！！！！</a>
   </div>
+  <div class="scroll-arrow">&#9660;</div>
 </div>
 
 <div class="egg-modal" id="eggModal">
@@ -552,9 +657,102 @@ body {
 </div>
 
 <script>
+/* 导航:滚动显示/隐藏 */
 const topNav = document.querySelector('.top-nav');
+const pagesEl = document.querySelectorAll('.page');
+const PAGE_COUNT = pagesEl.length;
+/* 锁定初始视口高,避免 Edge 网址栏伸缩导致高度变化 */
+const LOCKED_H = window.innerHeight;
+const pageHeight = () => LOCKED_H;
+
+/* 滚动吸附:任意滚轮动作都立即切一屏 */
+let isScrolling = false;
+let scrollAnimId = null;
+function getCurrentPage(){
+  const ph = pageHeight();
+  const cur = Math.round(window.scrollY / ph);
+  return Math.max(0, Math.min(PAGE_COUNT - 1, cur));
+}
+/* 手动滚动动画:精确到位,完成才释放锁 */
+function animateScrollTo(target){
+  const duration = 500;
+  const startY = window.scrollY;
+  const delta = target - startY;
+  const startT = performance.now();
+  if(scrollAnimId) cancelAnimationFrame(scrollAnimId);
+  function step(now){
+    const t = Math.min((now - startT) / duration, 1);
+    const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
+    window.scrollTo(0, startY + delta * ease);
+    if(t < 1){
+      scrollAnimId = requestAnimationFrame(step);
+    } else {
+      scrollAnimId = null;
+      isScrolling = false;
+    }
+  }
+  scrollAnimId = requestAnimationFrame(step);
+}
+function snapToPage(n){
+  n = Math.max(0, Math.min(PAGE_COUNT - 1, n));
+  const target = n * pageHeight();
+  isScrolling = true;
+  animateScrollTo(target);
+}
+
+window.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  if(isScrolling) return;
+  const cur = getCurrentPage();
+  isScrolling = true;
+  if(e.deltaY > 0) snapToPage(cur + 1);
+  else snapToPage(cur - 1);
+}, { passive: false });
+
+/* 触屏滑动吸附(仅移动端生效) */
+let touchStartY = 0;
+let touchPrevY = 0;
+let touchLocked = false;
+const isTouch = window.matchMedia('(pointer: coarse)').matches;
+if(isTouch){
+  window.addEventListener('touchstart', (e) => {
+    if(isScrolling) return;
+    touchStartY = e.touches[0].clientY;
+    touchPrevY = touchStartY;
+    touchLocked = true;
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if(!touchLocked || isScrolling) return;
+    if(e.cancelable) e.preventDefault();
+    // 跟手:页面随手指轻微移动(阻尼 0.5),松手后吸附
+    const curY = e.touches[0].clientY;
+    const dy = curY - touchPrevY;
+    touchPrevY = curY;
+    window.scrollTo(0, window.scrollY - dy * 0.5);
+  }, { passive: false });
+
+  window.addEventListener('touchend', (e) => {
+    if(!touchLocked) return;
+    touchLocked = false;
+    if(isScrolling) return;
+    const vy = e.changedTouches[0].clientY - touchStartY;
+    const cur = getCurrentPage();
+    isScrolling = true;
+    if(Math.abs(vy) > 40) {
+      if(vy < 0) snapToPage(cur + 1);
+      else snapToPage(cur - 1);
+    } else {
+      // 没滑够,吸附回当前页
+      snapToPage(cur);
+    }
+  }, { passive: true });
+}
+
+/* 导航:滚过第一屏(100vh)才显示 */
 window.addEventListener('scroll', () => {
-  if (window.scrollY > 30) {
+  const threshold = pageHeight() - 40;
+  if (window.scrollY > threshold) {
     topNav.classList.add('show');
   } else {
     topNav.classList.remove('show');
