@@ -1,15 +1,54 @@
-﻿<!DOCTYPE html>
+<!-- ============================================================================
+  文件说明：Kurlet（库乐特）官网首页  index.html
+  ----------------------------------------------------------------------------
+  这个页面实现的是"整屏分页式"官网首页 —— 每一屏刚好占满浏览器可视高度
+  （100svh），滚动一次就切换一整屏，画面如下：
+
+    第 1 屏：全屏背景图 + 大标题 "Kurlet / 库乐特"（带呼吸浮动动画）+ 下滑箭头
+    第 2 屏：图片轮播（8 张真实图片 + 1 张克隆首图用于无缝循环），支持：
+             自动播放 / 上一张·下一张按钮 / 底部小圆点点击跳转 /
+             点击轮播图弹出大图浏览框（Lightbox，可左右翻、键盘操作）
+    第 3 屏：引导文字区 + "了解更多" 按钮
+
+  全局功能：
+    1. 顶部导航栏：滚动超过第一屏的高度之后才从顶部滑出显示（平时藏起来）；
+       导航里的"更多"按钮会展开一个全屏下拉菜单，用来放各种联机服务的入口
+       （MC / 泰拉瑞亚 / 星露谷 / 饥荒……）
+    2. 隐藏彩蛋：在 3 秒内连续点击"了解更多"按钮 3 次，会弹出一个全屏视频
+       播放层（播放 video/rickroll.mp4），纯属娱乐彩蛋
+    3. 页面左下角有个几乎看不见的 "." 小链接，点它可跳转到 text（文字）页
+
+  ----------------------------------------------------------------------------
+  注释约定：
+    HTML 注释写在每个结构块之前；
+    CSS 注释 /* ... */      写在每段样式之前，解释这段样式管什么、调数值改什么；
+    JS 注释 // 或 /* ... */  写在每段逻辑之前；
+    注释里写着"可调"的数值，都是可以直接修改来改变外观/行为的地方。
+  图片都存放在本文件同目录的 photo/ 文件夹内（如 photo/44.webp）。
+============================================================================ -->
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- 下面是页面头部信息，不会显示在页面主体里 -->
 <meta charset="UTF-8">
+<!-- 视口设置：让页面宽度跟随设备宽度、初始缩放 1.0，是移动端适配的关键 -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!-- 浏览器标签页上显示的标题 -->
 <title>Kurlet-库乐特</title>
+<!-- 站点描述：会被搜索引擎收录，显示在搜索结果标题下方（不影响页面显示） -->
 <meta name="description" content="Kurlet—库乐特——简简单单没什么亮点的小破站，一些普通到不能再普通的功能。">
+<!-- 网站图标：浏览器标签页左上角的小图标（注意路径是域名根目录下的 /favicon.ico） -->
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<!-- canonical：告诉搜索引擎"本页面的正式网址"是 https://kurlet.com/，避免重复内容被判抄袭 -->
 <link rel="canonical" href="https://kurlet.com/">
+<!-- preload 预加载：让浏览器提前下载 photo/11.webp（轮播第一张图），
+     这样首屏轮播出现时图片能立刻显示、减少白屏等待 -->
 <link rel="preload" href="photo/11.webp" as="image">
 
 <style>
+/* ============================ 全局基础样式 ============================ */
+/* 通配符 * 作用于页面所有元素：清除默认内外边距，统一盒模型。
+   可调：font-family 决定全站默认字体，改成 "Microsoft YaHei" 等可换字体 */
 *{
   margin: 0;
   padding: 0;
@@ -17,6 +56,10 @@
   font-family: system-ui, sans-serif;
 }
 
+/* 全屏固定的背景层：
+   用 photo/44.webp 当整站背景铺满全屏，并把 z-index 设为 -1 让它垫在所有内容底下；
+   position:fixed + inset:0 表示固定占满整个视口，滚动时背景不动。
+   可调：url() 里换背景图；30% top 控制图片横向对齐位置；cover 表示图片裁切铺满 */
 .bg-fixed {
   position: fixed;
   inset: 0;
@@ -28,6 +71,11 @@ body {
   padding: 0;
 }
 
+/* ============================ 顶部导航栏 ============================ */
+/* 顶栏：固定在屏幕最上方的一条半透明导航（毛玻璃效果）。
+   初始 transform: translateY(-100%) 把它移到屏幕外（隐藏），
+   配合 JS 添加 .show 类后滑下来显示 —— 也就是"滚下去才出现的导航栏"。
+   可调：height 改导航高度；gap 改每个链接之间的间距；background 透明度可调 */
 .top-nav{
   position: fixed;
   top: 0;
@@ -38,90 +86,105 @@ body {
   align-items: center;
   justify-content: center;
   gap: 32px;
-  z-index: 999;
+  z-index: 999;   /* 层级很高，保证盖在其他内容上面 */
   background: rgba(0,0,0,0.2);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  transform: translateY(-100%);
-  transition: transform 0.35s ease;
+  backdrop-filter: blur(6px);          /* 背景毛玻璃模糊，可调模糊半径 */
+  -webkit-backdrop-filter: blur(6px);  /* Safari/Chrome 前缀版，兼容旧浏览器 */
+  transform: translateY(-100%);        /* 默认藏在屏幕上方外面 */
+  transition: transform 0.35s ease;    /* 滑出/收起动画时长：0.35 秒可调 */
 }
+/* 加了 .show 类后顶栏滑回屏幕内（translateY(0) 表示回到原位） */
 .top-nav.show {
   transform: translateY(0);
 }
+/* 顶栏里的链接文字样式：白色、去掉下划线 */
 .top-nav a{
   color: #fff;
   text-decoration: none;
-  font-size: 14px;
-  opacity: 0.9;
+  font-size: 14px;   /* 字号可调 */
+  opacity: 0.9;      /* 平时略透明 */
   cursor: pointer;
 }
+/* 鼠标悬停时完全不透明（更亮） */
 .top-nav a:hover{
   opacity: 1;
 }
 
 
+/* ====================== 全屏下拉菜单（点"更多"展开） ====================== */
+/* 下拉层：占满除了顶部 60px 导航以外的整个屏幕。
+   和顶栏一样先 translateY(-100%) 藏在屏幕外，加上 .open 类才展开。
+   内部用 Grid 分成左右两列：左列 1 份宽放菜单项，右列 4 份宽放内容介绍。
+   pointer-events:none + visibility:hidden 让隐藏时完全点不到它 */
 .full-dropdown {
   position: fixed;
-  top: 60px;
+  top: 60px;                          /* 从导航栏正下方开始 */
   left: 0;
   width: 100%;
-  height: calc(100vh - 60px);
+  height: calc(100vh - 60px);         /* 高度 = 整屏高 - 导航高度 */
   background: rgba(0,0,0,0.2);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 998;
-
   transform: translateY(-100%);
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease;    /* 展开动画时长 0.4 秒可调 */
   display: grid;
-  grid-template-columns: 1fr 4fr;
+  grid-template-columns: 1fr 4fr;     /* 左右列宽度比例 1:4，可调 */
   color: #fff;
   pointer-events: none;
   visibility: hidden;
 }
+/* .open 状态：滑入屏幕 + 恢复可点击 */
 .full-dropdown.open {
   transform: translateY(0);
   pointer-events: auto;
   visibility: visible;
 }
 
-
+/* 左列容器：放一排竖向排列的菜单项，背景稍微比右边深一点作区分 */
 .full-dropdown-left {
   background: rgba(0,0,0,0.15);
   display: flex;
-  flex-direction: column;
+  flex-direction: column;   /* 子项竖排，占满整列 */
 }
+/* 单个菜单项（如"MC联机"）：flex:1 让每个菜单项平分左列高度 */
 .full-dropdown-item {
   padding: 0 30px;
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: center;      /* 文字垂直居中 */
   cursor: pointer;
-  border-left: 4px solid transparent;
-  transition: 0.2s;
+  border-left: 4px solid transparent;  /* 预留左侧 4px 高亮条位置 */
+  transition: 0.2s;         /* 悬停/激活过渡时长 0.2 秒 */
   font-size: 16px;
   background: transparent;
 }
 
+/* 当前选中的菜单项：左侧亮出橙色高亮条 + 背景变深。
+   可调：border-left-color 换高亮颜色（#ffd288 是橙色） */
 .full-dropdown-item.active {
   background: rgba(0,0,0,0.35);
   border-left-color: #ffd288;
 }
+/* 鼠标悬停菜单项：背景微微变亮，提示可点 */
 .full-dropdown-item:hover {
   background: rgba(255,255,255,0.08);
 }
 
 
+/* 右列容器：显示当前选中项的大标题、说明文字和"前往查看"按钮 */
 .full-dropdown-right {
   padding: 40px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: center;   /* 内容整体垂直居中 */
 }
+/* 右列大标题字号，可调 */
 .full-dropdown-title {
   font-size: 26px;
   margin-bottom: 16px;
 }
+/* 右列说明文字：小一号、半透明、行高 1.7 方便阅读；max-width 限制行宽更好看 */
 .full-dropdown-desc {
   font-size: 16px;
   opacity: 0.85;
@@ -129,6 +192,7 @@ body {
   line-height: 1.7;
   max-width: 600px;
 }
+/* "前往查看"按钮：胶囊形状（border-radius 30px）、橙色底、黑字 */
 .full-dropdown-link {
   display: inline-block;
   padding: 12px 30px;
@@ -137,21 +201,24 @@ body {
   color: #000;
   text-decoration: none;
   font-size: 16px;
-  width: fit-content;
+  width: fit-content;   /* 按钮宽度只包住文字本身 */
 }
+/* 悬停时按钮颜色变浅一点 */
 .full-dropdown-link:hover {
   background: #ffdfaa;
 }
 
+/* ---------- 媒体查询：屏幕宽度 ≤720px（手机）时缩小各元素尺寸 ----------
+   可调：720px 是"手机/平板"的分界宽度，可按需改大改小 */
 @media (max-width: 720px) {
   .top-nav {
-    gap: 12px;
+    gap: 12px;               /* 手机屏窄，顶栏链接间距缩小 */
   }
   .top-nav a {
-    font-size: 12px;
+    font-size: 12px;         /* 链接字号缩小 */
   }
   .full-dropdown {
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 2fr;  /* 手机上左右列改成 1:2，给文字多留空间 */
   }
   .full-dropdown-title {
     font-size: 20px;
@@ -165,38 +232,45 @@ body {
   }
 }
 
+/* ============================ 第二屏：图片轮播 ============================ */
+/* 外层内容盒子：占满整行宽度，配合分页容器使用 */
 .wrap-box{
   width: 100%;
   margin: 0 auto;
 }
 
+/* 轮播可视区盒子：overflow:hidden 是关键 —— 所有图片排成一长条，
+   超出这个盒子的部分全部被裁掉，只露出当前的一张。
+   height:100svh 表示占满整屏高（svh 会跟随手机浏览器地址栏收起/展开自动调整）。
+   想改成"固定高度"轮播，可以把它改成如 height:600px */
 .slider-box {
   width: 100%;
   height: 100svh;
   aspect-ratio: auto;
-  overflow: hidden;
-  position: relative;
+  overflow: hidden;      /* 溢出内容隐藏，形成"窗口"效果 */
+  position: relative;    /* 作为内部绝对定位元素（按钮/文字/遮罩）的定位基准 */
   border-radius: 0;
   box-shadow: none;
  }
 
+/* 手机（≤720px）下对轮播相关元素的微调 */
 @media (max-width: 720px) {
   .page1 img {
-    object-position: 30% center;
+    object-position: 30% center;   /* 首屏图在手机上横向靠左 30% 处取景，避免人脸/主体被裁 */
   }
   .item-44 img {
-    object-position: 30% center;
+    object-position: 30% center;   /* 第 4 张图（44.webp）同样靠左取景 */
   }
   .slider-box {
     aspect-ratio: auto;
-    height: 100svh;
+    height: 100svh;      /* 手机上仍占满整屏高 */
   }
   .slider-text {
-    left: 12px;
+    left: 12px;          /* 轮播文字靠左下角，贴边 */
     bottom: 12px;
   }
   .slider-text h2 {
-    font-size: 18px !important;
+    font-size: 18px !important;    /* 标题字号缩小（!important 压过桌面端样式） */
     margin: 4px 0 8px;
   }
   .slider-text p {
@@ -204,30 +278,37 @@ body {
     margin-bottom: 4px;
   }
   .slider-text .btn-link {
-    padding: 6px 14px;
+    padding: 6px 14px;   /* 按钮内边距缩小 */
     font-size: 12px;
   }
   .slider-mask {
-    height: 55%;
+    height: 55%;         /* 底部渐变遮罩加高，保证手机上文字更清晰 */
   }
 }
 
+/* 图片"长条轨道"：所有轮播图横向排在一行。
+   width:900% = 9 倍容器宽，正好装下 9 张（8 张真图 + 1 张克隆首图）各占 11.11% 的图。
+   JS 通过改变它的 transform 实现左右移动；transition 0.6s 是切换动画时长（可调，改小更快） */
 .slider-wrap {
   width: 900%;
   height: 100%;
   display: flex;
   transition: 0.6s ease;
 }
+/* 每一张图占轨道宽的 11.11%（=100/9），高度撑满 */
 .slider-item {
   width: 11.11%;
   height: 100%;
 }
+/* 图片本身：object-fit:cover 让图片按比例铺满并裁掉多余部分（不变形） */
 .slider-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+/* 轮播底部渐变遮罩：从下往上由黑到透明，盖在图片上让底部文字更易读。
+   可调：height 45% 是遮罩高度；linear-gradient 里的透明度渐变可改 */
 .slider-mask {
   position: absolute;
   left: 0;
@@ -236,9 +317,12 @@ body {
   height: 45%;
   background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 60%, transparent 100%);
   z-index: 2;
-  pointer-events: none;
+  pointer-events: none;   /* 遮罩不拦截鼠标，保证下面的按钮仍可点击 */
 }
 
+/* 叠在轮播图上的欢迎文字块（"欢迎访问 / Welcome to visit / 了解更多按钮"）。
+   绝对定位在左下角，z-index:3 保证盖在遮罩上面。
+   可调：left/bottom 是离左下角的距离；text-shadow 是文字阴影强度 */
 .slider-text {
   position: absolute;
   left: 30px;
@@ -253,17 +337,20 @@ body {
   /* 背景图备 */
   /* background: url("favicon.ico") center / cover no-repeat; */
 }
+/* 文字块里的小段落（副标题 "Welcome to visit"）：加粗、略透明 */
 .slider-text p{
   font-size: 16px;
   font-weight: 700;
   margin-bottom: 8px;
   opacity: 0.85;
 }
+/* 文字块里的主标题（"欢迎访问"）字号，可调 */
 .slider-text h2 {
   font-size: 36px;
   font-weight: 700;
   margin: 10px 0 20px;
 }
+/* "了解更多" 按钮：橙色胶囊按钮，点击行为由 JS 控制（见脚本区） */
 .slider-text .btn-link {
   display: inline-block;
   padding: 11px 28px;
@@ -278,6 +365,8 @@ body {
   background: #ffdfaa;
 }
 
+/* 左右切换箭头按钮（< 和 >）：半透明黑底、垂直居中。
+   可调：width/height 按钮尺寸；font-size 箭头符号大小 */
 .slider-btn {
   width: 40px;
   height: 60px;
@@ -287,16 +376,18 @@ body {
   border: none;
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%);   /* 上移自身一半高度，实现真正的垂直居中 */
   cursor: pointer;
   z-index: 4;
 }
 .slider-btn:hover{
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.55);  /* 悬停变深 */
 }
+/* 上一张按钮贴左 10px，下一张按钮贴右 10px */
 .prev { left: 10px; }
 .next { right: 10px; }
 
+/* 底部右侧的小圆点指示器容器（当前第几张的提示）。可调 bottom/right 位置、gap 间距 */
 .slider-dots {
   position: absolute;
   bottom: 30px;
@@ -305,6 +396,7 @@ body {
   gap: 8px;
   z-index: 4;
 }
+/* 单个小圆点：12px 圆形、半透明白。可调尺寸/颜色 */
 .dot {
   width: 12px;
   height: 12px;
@@ -312,28 +404,37 @@ body {
   background: #ffffff50;
   cursor: pointer;
 }
+/* 当前所在页的圆点：变纯白高亮 */
 .dot.active {
   background: #fff;
 }
 
+/* ===================== 第三屏：正文内容卡片 ===================== */
+/* 白色半透明圆角卡片，用来放文字引导内容（#main）。
+   margin 30px 0 200px 中 200px 是底部留白，避免内容贴底。
+   background 的 0.88 透明度让底下背景图微微透出来 */
 .main-content{
   width: 100%;
   margin: 30px 0 200px;
   padding: 40px 30px;
   background: rgba(255,255,255,0.88);
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);   /* 卡片阴影，可调 */
 }
+/* 卡内小标题 h6 样式 */
 .main-content h6{
   color: #666;
   font-size: 16px;
   margin-bottom: 10px;
 }
+/* 卡内大标题 h1 样式，字号可调 */
 .main-content h1{
   font-size: 32px;
   color: #222;
   margin-bottom: 20px;
 }
+/* 卡内正文段落：text-indent:2em 首行缩进两字符；
+   text-align:justify 两端对齐，像书一样整齐 */
 .main-content p {
   font-size: 17px;
   line-height: 1.9;
@@ -342,11 +443,13 @@ body {
   text-indent: 2em;
   text-align: justify;
 }
+/* 卡内若有视频元素（本页 HTML 中没用到，属于预留样式） */
 .main-content video {
   width: 100%;
   border-radius: 12px;
   margin-top: 20px;
 }
+/* 手机端缩小卡片内边距与标题字号 */
 @media (max-width:720px){
   .main-content {
     padding: 20px 15px;
@@ -356,29 +459,36 @@ body {
   }
 }
 
+/* ===================== 彩蛋弹窗（全屏视频层） ===================== */
+/* 点击"了解更多"3 次后弹出的全屏黑色遮罩，里面放一个自动播放的视频（rickroll）。
+   opacity:0 + pointer-events:none 平时完全透明且点不到；JS 加 .show 后淡入显示。
+   可调：transition 0.25s 是淡入淡出时长 */
 .egg-modal {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.95);
+  inset: 0;                              /* 占满全屏 */
+  background: rgba(0, 0, 0, 0.95);       /* 近黑色背景，盖住页面 */
   display: flex;
   align-items: center;
-  justify-content: center;
-  z-index: 9999;
+  justify-content: center;               /* 视频居中 */
+  z-index: 9999;                         /* 最高层，盖住一切 */
   opacity: 0;
   pointer-events: none;
   transition: 0.25s ease;
 }
+/* .show 状态：变为可见可点 */
 .egg-modal.show {
   opacity: 1;
   pointer-events: auto;
 }
+/* 弹窗里的视频尺寸：宽 96%、最大 950px，居中播放 */
 .egg-modal video {
   width: 96%;
   max-width: 950px;
   border-radius: 8px;
-  box-shadow: 0 0 40px #000;
+  box-shadow: 0 0 40px #000;   /* 视频周围黑色光晕 */
 }
 
+/* 弹窗右上角的关闭按钮（×）：白色半透明圆形 */
 .egg-close {
   position: absolute;
   top: 24px;
@@ -388,33 +498,41 @@ body {
   border-radius: 50%;
   background: rgba(255,255,255,0.15);
   color: #fff;
-  font-size: 30px;
+  font-size: 30px;      /* × 号大小，可调 */
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 10;
 }
+/* 悬停关闭按钮时背景更亮 */
 .egg-close:hover {
   background: rgba(255,255,255,0.3);
 }
 
+/* ===================== 隐藏彩蛋入口 ===================== */
+/* 左下角的隐藏小链接：一个几乎看不见的 "."（rgba 透明度只有 0.08），
+   点击后跳到 https://kurlet.com/text（文字页）。属于给"懂的人"藏的入口 */
 .secret-egg {
   position: fixed;
   left: 8px;
   bottom: 8px;
   font-size: 10px;
-  color: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.08);   /* 平时几乎透明（可调成 1 可完全隐藏） */
   text-decoration: none;
   z-index: 99;
   transition: all 0.3s ease;
   padding: 4px;
 }
+/* 鼠标悬停时它才会变大变亮，提示"这里有东西" */
 .secret-egg:hover {
   color: rgba(255,255,255,0.7);
   font-size: 12px;
 }
 
+/* ===================== 大图浏览层（Lightbox） ===================== */
+/* 点击轮播图后弹出的全屏看图层：黑色底 + 居中的大图 + 左右翻页/关闭按钮。
+   平时隐藏（opacity 0 + pointer-events:none），加 .show 后淡入 */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -431,6 +549,7 @@ body {
   opacity: 1;
   pointer-events: auto;
 }
+/* 大图本身：最大 96vw 宽 / 92vh 高，等比缩放完整显示不裁切 */
 .lightbox img {
   max-width: 96vw;
   max-height: 92vh;
@@ -438,6 +557,7 @@ body {
   box-shadow: 0 0 40px rgba(0,0,0,0.8);
   object-fit: contain;
 }
+/* 关闭按钮（×），样式同彩蛋弹窗的关闭按钮 */
 .lightbox-close {
   position: absolute;
   top: 24px;
@@ -457,6 +577,7 @@ body {
 .lightbox-close:hover {
   background: rgba(255,255,255,0.3);
 }
+/* 左右翻图按钮（< >）：半透明方块、垂直居中，贴在屏幕左右边缘 */
 .lightbox-btn {
   position: absolute;
   top: 50%;
@@ -474,27 +595,32 @@ body {
 .lightbox-btn:hover {
   background: rgba(255,255,255,0.25);
 }
+/* 上一张按钮在左 6px、下一张按钮在右 6px */
 .lightbox-prev { left: 6px; }
 .lightbox-next { right: 6px; }
 
-/* ============ 分页布局 ============ */
+/* ============ 分页布局（每一屏 = 一个 .page，占满 100svh） ============ */
+/* 页面本身允许正常滚动（JS 在此基础上做"一滚一屏"的吸附） */
 html, body {
   overflow: auto;
   height: auto;
-  overscroll-behavior: none;
+  overscroll-behavior: none;   /* 禁止浏览器"拉过头"回弹，保证吸附手感干净 */
 }
 body {
   padding: 0;
 }
+/* 每一"页"：占满整屏高度。JS 按 .page 的个数计算总页数 */
 .page {
   position: relative;
   width: 100%;
   height: 100svh;
   display: block;
 }
+/* ---------- 第 1 屏：首屏 ---------- */
 .page1 {
   position: relative;
 }
+/* 首屏背景图：绝对定位铺满整屏并裁切填满 */
 .page1 img {
   position: absolute;
   inset: 0;
@@ -502,34 +628,44 @@ body {
   height: 100%;
   object-fit: cover;
 }
+/* 首屏文字区（Kurlet 大标题）：padding-top:30vh 把它压到屏幕偏下 30% 处。
+   z-index:2 让文字显示在背景图与遮罩之上 */
 .page1-text {
   position: relative;
   z-index: 2;
   color: white;
   text-align: center;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+  text-shadow: 0 2px 12px rgba(0,0,0,0.7);   /* 文字阴影，避免背景亮时看不清 */
   padding-top: 30vh;
 }
+/* 首屏大标题：72px 超大字号 + 字距 12px。
+   animation: breatheMove 让标题缓慢上下浮动并变化透明度（呼吸感），4s 一个循环 */
 .page1-text h1 {
   font-size: 72px;
   letter-spacing: 12px;
   animation: breatheMove 4s ease-in-out infinite;
 }
+/* 首屏副标题（"库乐特"）：20px、带字距、半透明，做透明度呼吸动画 */
 .page1-text p {
   font-size: 20px;
   letter-spacing: 6px;
   opacity: 0.85;
   animation: breatheOpacity 4s ease-in-out infinite;
 }
+/* "上浮+淡出"呼吸动画：可调 50% 里的 translateY(-10px)（浮动距离）
+   和 opacity 0.7（最淡程度）、4s（循环时长） */
 @keyframes breatheMove {
   0%, 100% { transform: translateY(0); opacity: 1; }
   50% { transform: translateY(-10px); opacity: 0.7; }
 }
+/* "透明度"呼吸动画 */
 @keyframes breatheOpacity {
   0%, 100% { opacity: 0.9; }
   50% { opacity: 0.55; }
 }
 
+/* 首屏的半透明压暗遮罩：盖在背景图上、垫在文字下，让标题更清晰。
+   可调：rgba(60,60,60,0.35) 的 0.35 是压暗程度 */
 .page1-mask {
   position: absolute;
   inset: 0;
@@ -537,6 +673,8 @@ body {
   z-index: 1;
 }
 
+/* 首屏底部的 ▼ 下滑提示箭头：水平居中，做上下弹跳动画。
+   pointer-events:none 表示它只是一个装饰（不拦截鼠标，点了也没反应） */
 .scroll-arrow {
   position: absolute;
   left: 50%;
@@ -545,25 +683,29 @@ body {
   color: #fff;
   font-size: 28px;
   z-index: 5;
-  animation: bounce 1.6s ease-in-out infinite;
+  animation: bounce 1.6s ease-in-out infinite;  /* 弹跳动画 1.6s 一循环 */
   pointer-events: none;
   text-shadow: 0 2px 6px rgba(0,0,0,0.6);
 }
+/* 弹跳动画：12px 是每次向下跳动的距离，可调 */
 @keyframes bounce {
   0%, 100% { transform: translate(-50%, 0); }
   50% { transform: translate(-50%, 12px); }
 }
 
+/* 第二屏的外层容器 */
 .wrap-box {
   width: 100%;
   margin: 0;
 }
 
+/* 第 3 屏：用 flex 把中间的白色内容卡片整体居中 */
 .page3 {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+/* 第 3 屏卡片宽度 85%、最大 1200px */
 .page3 .main-content {
   width: 85%;
   max-width: 1200px;
@@ -573,28 +715,40 @@ body {
 </head>
 <body>
 
+<!-- 全屏固定背景层（见上方 .bg-fixed 样式），先于一切内容渲染，垫在最底层 -->
 <div class="bg-fixed"></div>
 
+<!-- ===================== 隐藏彩蛋链接 ===================== -->
+<!-- 左下角几乎看不见的 "."，点击跳到 /text 文字页（见 .secret-egg 样式） -->
 <a href="https://kurlet.com/text" class="secret-egg">·</a>
 
+<!-- ===================== 顶部导航栏 ===================== -->
+<!-- 固定在屏幕顶端；JS 里滚动超过一屏高度才会给它加 .show 让它滑出来。
+     里面是站内各栏目入口：# 表示还没做好的空链接（点了没反应） -->
 <div class="top-nav">
   <a href="https://kurlet.com/photo">图片</a>
   <a href="#">视频</a>
   <a href="#">下载</a>
   <a href="#">支持</a>
   <a href="https://kurlet.com/">主页</a>
+  <!-- 更多：没有 href，靠 JS 监听点击来开合下面的全屏下拉菜单 -->
   <a id="moreToggle">更多</a>
 </div>
 
 
+<!-- ===================== 全屏下拉菜单（点"更多"弹出） ===================== -->
+<!-- 平时藏在屏幕外；JS 切换 .open 类控制展开/收起。
+     左列：菜单项列表；右列：JS 根据 data-id 动态填充对应介绍内容 -->
 <div class="full-dropdown" id="fullDropdown">
   <div class="full-dropdown-left">
+    <!-- data-id 是每个菜单项的"编号"，JS 靠它找到对应内容；class="active" 表示默认选中第 1 项 -->
     <div class="full-dropdown-item active" data-id="mod">MC联机</div>
     <div class="full-dropdown-item" data-id="launcher">泰拉瑞亚联机</div>
     <div class="full-dropdown-item" data-id="guide">星露谷联机</div>
     <div class="full-dropdown-item" data-id="faq">饥荒联机</div>
     <div class="full-dropdown-item" data-id="community">待开发</div>
   </div>
+  <!-- 右栏内容由 JS 的 updatePanel() 动态生成（菜单数据在脚本里 menuData 中维护） -->
   <div class="full-dropdown-right" id="dropdownRight">
     <h3 class="full-dropdown-title">MC联机</h3>
     <p class="full-dropdown-desc">简简单单的服务器，没啥亮眼。</p>
@@ -602,6 +756,8 @@ body {
   </div>
 </div>
 
+<!-- ===================== 第 1 屏：首屏欢迎页 ===================== -->
+<!-- 整屏背景图 + 半透明压暗遮罩 + 居中的 Kurlet 大标题 + 底部 ▼ 提示箭头 -->
 <div class="page page1" id="page1">
   <img src="photo/44.webp" alt="首屏">
   <div class="page1-mask"></div>
@@ -609,39 +765,52 @@ body {
     <h1>Kurlet</h1>
     <p>库乐特</p>
   </div>
-  <div class="scroll-arrow">&#9660;</div>
+  <div class="scroll-arrow">&#9660;</div>   <!-- &#9660; 是 ▼ 符号的 HTML 写法 -->
 </div>
 
+<!-- ===================== 第 2 屏：图片轮播 ===================== -->
 <div class="wrap-box page page2" id="page2">
   
   <div class="slider-box">
+    <!-- 图片长条轨道：里面一共有 9 个滑块 -->
     <div class="slider-wrap">
-     
+     <!-- loading="lazy"：图片滚动到附近才加载，节省首屏流量 -->
       <div class="slider-item"><img loading="lazy" src="photo/11.webp" alt="图1"></div>
       <div class="slider-item"><img loading="lazy" src="photo/22.webp" alt="图2"></div>
       <div class="slider-item"><img loading="lazy" src="photo/33.webp" alt="图3"></div>
+      <!-- item-44 这个类用于手机上单独调整第 4 张图的取景位置（见样式） -->
       <div class="slider-item item-44"><img loading="lazy" src="photo/44.webp" alt="图4"></div>
       <div class="slider-item"><img loading="lazy" src="photo/55.webp" alt="图5"></div>
       <div class="slider-item"><img loading="lazy" src="photo/66.webp" alt="图6"></div>
       <div class="slider-item"><img loading="lazy" src="photo/77.webp" alt="图7"></div>
       <div class="slider-item"><img loading="lazy" src="photo/88.webp" alt="图8"></div>
+      <!-- 最后一张是"克隆的第一张图"：用来做无缝循环，
+           轮播到最后时会瞬间跳回真正第 1 张而不被发现 -->
       <div class="slider-item"><img loading="lazy" src="photo/11.webp" alt="图1"></div>
     </div>
+    <!-- 底部渐变遮罩：让文字更清晰（见样式） -->
     <div class="slider-mask"></div>
+    <!-- 叠加在图片上的欢迎文字 + 按钮 -->
     <div class="slider-text">
       <h2>欢迎访问</h2>
       <p>Welcome to visit</p>
-     
+     <!-- href="#main" 只是占位；JS 里点它时 preventDefault 阻止跳转，
+           改为：普通点击平滑滚到 #main；3 秒内连点 3 次则触发彩蛋视频 -->
       <a class="btn-link" href="#main">了解更多</a>
     </div>
+    <!-- 上一张 / 下一张按钮，字符用 HTML 实体写法 &lt;(<) &gt;(>) -->
     <button class="slider-btn prev">&lt;</button>
     <button class="slider-btn next">&gt;</button>
+    <!-- 底部圆点指示器：JS 会往这里动态塞入与图片数相等的圆点 -->
     <div class="slider-dots"></div>
+    <!-- 纯装饰的下滑箭头（轮播右下角） -->
     <div class="scroll-arrow">&#9660;</div>
   </div>
 </div>
 
+<!-- ===================== 第 3 屏：引导文字页 ===================== -->
 <div class="page page3" id="page3">
+  <!-- id="main" 是"了解更多"按钮平滑滚动到的目的地 -->
   <div id="main" class="main-content">
     <h1>这是一个引导页面</h1>
     <h3>这是一个官网</h3>
@@ -651,76 +820,102 @@ body {
   <div class="scroll-arrow">&#9660;</div>
 </div>
 
+<!-- ===================== 彩蛋弹窗 ===================== -->
+<!-- 平时透明隐藏；3 连击"了解更多"后由 JS 往里插入 <video> 并显示 -->
 <div class="egg-modal" id="eggModal">
+  <!-- &times; 是 ×（关闭符号） -->
   <div class="egg-close" id="eggClose">&times;</div>
 </div>
 
 
+<!-- ===================== 大图浏览层（Lightbox） ===================== -->
+<!-- 点击轮播图后全屏展示大图；图片地址由 JS 动态设置 -->
 <div class="lightbox" id="lightbox">  <div class="lightbox-close" id="lightboxClose">&times;</div>
   <button class="lightbox-btn lightbox-prev" id="lightboxPrev">&lt;</button>
   <img id="lightboxImg" alt="大图">
   <button class="lightbox-btn lightbox-next" id="lightboxNext">&gt;</button>
 </div>
-
 <script>
-/* 导航:滚动显示/隐藏 */
+/* =====================================================================
+   JavaScript 功能总览（从上到下依次是）：
+   1. 整屏吸附滚动：滚轮/手指滑动都只切换"一整屏"（.page）
+   2. 顶部导航：滚动超过第一屏才显示出来
+   3. 图片轮播：自动播放 + 按钮/圆点切换 + 无缝循环
+   4. Lightbox：点击轮播图全屏看大图（可左右翻、Esc 关闭、方向键翻页）
+   5. 彩蛋视频：3 秒内连点 3 次"了解更多"播放 rickroll
+   6. "更多"全屏下拉菜单：切换左栏菜单项时更新右栏内容
+   ===================================================================== */
+
+/* ---------- 1. 整屏吸附滚动 ---------- */
+/* 获取顶部导航、所有 .page（每一整屏）元素 */
 const topNav = document.querySelector('.top-nav');
 const pagesEl = document.querySelectorAll('.page');
-const PAGE_COUNT = pagesEl.length;
-/* 锁定初始视口高,避免 Edge 网址栏伸缩导致高度变化 */
+const PAGE_COUNT = pagesEl.length;   /* 总屏数 = 3（首屏/轮播/文字页） */
+/* 锁定"初始视口高度"：用 window.innerHeight 记一次，之后固定用它，
+   避免 Edge 手机浏览器网址栏收起/展开时视口高度变化导致切屏计算错乱。
+   可调：如果不需要这个技巧可直接用 window.innerHeight */
 const LOCKED_H = window.innerHeight;
 const pageHeight = () => LOCKED_H;
 
-/* 滚动吸附:任意滚轮动作都立即切一屏 */
+/* isScrolling：切换动画进行中时为 true，防止动画途中再次触发切换（防连跳） */
 let isScrolling = false;
-let scrollAnimId = null;
+let scrollAnimId = null;   /* 记录 requestAnimationFrame 的 id，便于中途取消动画 */
+/* 根据当前滚动位置算出"正处于第几屏"（0 开始计数，越界时夹在 0~总屏数-1） */
 function getCurrentPage(){
   const ph = pageHeight();
   const cur = Math.round(window.scrollY / ph);
   return Math.max(0, Math.min(PAGE_COUNT - 1, cur));
 }
-/* 手动滚动动画:精确到位,完成才释放锁 */
+/* 手动滚动动画：用 requestAnimationFrame 逐帧滚动到目标位置。
+   duration 500 = 动画时长 0.5 秒（可调，改小滚动更快）；
+   ease 是缓动函数，让滚动"先快后慢"更柔和 */
 function animateScrollTo(target){
   const duration = 500;
   const startY = window.scrollY;
   const delta = target - startY;
   const startT = performance.now();
-  if(scrollAnimId) cancelAnimationFrame(scrollAnimId);
+  if(scrollAnimId) cancelAnimationFrame(scrollAnimId);  /* 取消上一次未完成的动画 */
   function step(now){
-    const t = Math.min((now - startT) / duration, 1);
+    const t = Math.min((now - startT) / duration, 1);   /* 进度 0→1 */
+    /* ease-in-out 三次方缓动：t<0.5 加速、t>0.5 减速 */
     const ease = t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2, 3)/2;
     window.scrollTo(0, startY + delta * ease);
     if(t < 1){
-      scrollAnimId = requestAnimationFrame(step);
+      scrollAnimId = requestAnimationFrame(step);   /* 没滚完继续下一帧 */
     } else {
       scrollAnimId = null;
-      isScrolling = false;
+      isScrolling = false;    /* 滚完了，解锁，允许下一次切换 */
     }
   }
   scrollAnimId = requestAnimationFrame(step);
 }
+/* 吸附到第 n 屏：把页面滚到 n × 屏高 的位置 */
 function snapToPage(n){
   n = Math.max(0, Math.min(PAGE_COUNT - 1, n));
   const target = n * pageHeight();
-  isScrolling = true;
+  isScrolling = true;          /* 先上锁，动画结束才解锁 */
   animateScrollTo(target);
 }
 
+/* 监听滚轮事件：一次滚轮就切一屏（向下滚下一屏，向上滚上一屏）。
+   passive:false 才能 preventDefault 阻止默认的连续滚动 */
 window.addEventListener('wheel', (e) => {
   e.preventDefault();
-  if(isScrolling) return;
+  if(isScrolling) return;      /* 动画中则忽略本次滚轮 */
   const cur = getCurrentPage();
   isScrolling = true;
-  if(e.deltaY > 0) snapToPage(cur + 1);
-  else snapToPage(cur - 1);
+  if(e.deltaY > 0) snapToPage(cur + 1);   /* 往下滚 → 下一屏 */
+  else snapToPage(cur - 1);               /* 往上滚 → 上一屏 */
 }, { passive: false });
 
-/* 触屏滑动吸附(仅移动端生效) */
-let touchStartY = 0;
-let touchPrevY = 0;
-let touchLocked = false;
+/* ---------- 触屏滑动吸附（只在触屏设备上启用） ---------- */
+let touchStartY = 0;      /* 手指按下时的 Y 坐标 */
+let touchPrevY = 0;       /* 上一次 touchmove 的 Y 坐标（用于算每帧位移） */
+let touchLocked = false;  /* 是否处于一次"触摸滑动"中 */
+/* 用 matchMedia 判断是不是触屏（pointer:coarse = 手指粗指针=触屏） */
 const isTouch = window.matchMedia('(pointer: coarse)').matches;
 if(isTouch){
+  /* 手指按下：记录起点，进入滑动状态 */
   window.addEventListener('touchstart', (e) => {
     if(isScrolling) return;
     touchStartY = e.touches[0].clientY;
@@ -728,6 +923,9 @@ if(isTouch){
     touchLocked = true;
   }, { passive: true });
 
+  /* 手指移动中：页面"跟手"地轻微滚动。
+     阻尼 0.5：手指滑 100px 页面只走 50px（可调 0~1，越大越跟手）；
+     拖动范围被限制在 0 ~ 最后一屏顶部，不会拖出界 */
   window.addEventListener('touchmove', (e) => {
     if(!touchLocked || isScrolling) return;
     if(e.cancelable) e.preventDefault();
@@ -741,6 +939,9 @@ if(isTouch){
     window.scrollTo(0, target);
   }, { passive: false });
 
+  /* 手指松开：根据总滑动距离决定切到哪屏。
+     vy 为 0 表示没有明显滑动 → 回到原屏；
+     vy>40px 表示明显上滑/下滑 → 切屏。40px 这个阈值可调 */
   window.addEventListener('touchend', (e) => {
     if(!touchLocked) return;
     touchLocked = false;
@@ -751,15 +952,16 @@ if(isTouch){
     scrollAnimId = null;
     isScrolling = true;
     if(Math.abs(vy) > 40) {
-      if(vy < 0) snapToPage(cur + 1);
-      else snapToPage(cur - 1);
+      if(vy < 0) snapToPage(cur + 1);   /* 手指上滑 = 看下面一屏 */
+      else snapToPage(cur - 1);         /* 手指下滑 = 看上面一屏 */
     } else {
-      snapToPage(cur);
+      snapToPage(cur);                  /* 滑得太轻：弹回当前屏 */
     }
   }, { passive: true });
 }
 
-/* 导航:滚过第一屏(100vh)才显示 */
+/* ---------- 2. 顶部导航：滚过第一屏(100vh)才显示 ---------- */
+/* 监听页面滚动：滚过 "一屏高 - 40px" 后给导航加 .show（滑出），否则移除 */
 window.addEventListener('scroll', () => {
   const threshold = pageHeight() - 40;
   if (window.scrollY > threshold) {
@@ -769,16 +971,25 @@ window.addEventListener('scroll', () => {
   }
 });
 
-const total = 8;
+/* ---------- 3. 图片轮播 ---------- */
+const total = 8;                                   /* 真实图片数量（可调） */
 const TOTAL_ITEMS = total + 1; // 多一张克隆的第一张图(无缝循环用)
-let index = 0;
+let index = 0;   /* 当前显示第几张（0 开始）。注意它能在 0~TOTAL_ITEMS-1 间变动 */
+/* 切图：通过改变长条轨道的 transform 让它左右平移。
+   每张图占轨道 11.11%，所以第 index 张要左移 index×11.11%。
+   动画时长 0.6s 和 CSS 里的 transition 保持一致（可调） */
 function changeSlide(animate = true){
   wrap.style.transition = animate ? '0.6s ease' : 'none';
   wrap.style.transform = `translateX(-${index * 11.11}%)`;
+  /* 同步高亮小圆点：index % total 让第 9 张（克隆图）也算第 1 张 */
   dots.forEach(d=>d.classList.remove('active'));
   dots[index % total].classList.add('active');
 }
 
+/* 下一张：
+   走到最后一张（克隆的第一张，index=TOTAL_ITEMS-1=8）后，
+   先停 620ms（与 0.6s 动画等长）再瞬间跳回真正的第 1 张，
+   视觉上就是"无缝回到开头" */
 function next(){
   index++;
   if(index >= TOTAL_ITEMS) index = 0;
@@ -786,11 +997,14 @@ function next(){
   if(index === TOTAL_ITEMS - 1){
     setTimeout(()=>{
       index = 0;
-      changeSlide(false);
+      changeSlide(false);   /* false = 不带动画瞬间跳回 */
     }, 620);
   }
 }
 
+/* 上一张：
+   如果在第 1 张时按上一张，先瞬间切到克隆的第 1 张（最右侧那张），
+   再带动画滑回真正的最后一张，实现"无缝向后" */
 function prev(){
   if(index === 0){
     index = TOTAL_ITEMS - 1;
@@ -804,12 +1018,15 @@ function prev(){
     changeSlide(true);
   }
 }
+/* 取页面上的相关元素：长条轨道、圆点容器、上一张/下一张按钮 */
 const wrap = document.querySelector('.slider-wrap');
 const dotsBox = document.querySelector('.slider-dots');
 const prevBtn = document.querySelector('.prev');
 const nextBtn = document.querySelector('.next');
-let timer;
+let timer;   /* 自动播放定时器句柄 */
 
+/* 动态生成小圆点：一共 total 个，第 1 个默认高亮；
+   点击第 i 个圆点直接跳到第 i 张 */
 for(let i=0; i<total; i++){
   const dot = document.createElement('span');
   dot.className = 'dot';
@@ -822,18 +1039,23 @@ for(let i=0; i<total; i++){
 }
 const dots = document.querySelectorAll('.dot');
 
+/* 给上一张/下一张按钮绑定点击事件 */
 nextBtn.onclick = next;
 prevBtn.onclick = prev;
 
 
-let lightboxOpen = false;
+let lightboxOpen = false;   /* 记录大图浏览层是否开着（供自动播放判断用） */
+/* 自动播放：每 5 秒自动切下一张。
+   可调：5000 是毫秒数，改小 = 切得越快（如 3000 = 3 秒一张） */
 function autoPlay(){
-  clearInterval(timer);
+  clearInterval(timer);          /* 先清掉旧定时器，防止叠加出多个定时器 */
   timer = setInterval(next, 5000);
 }
-autoPlay();
+autoPlay();   /* 页面加载完就开始自动播放 */
 
 
+/* ---------- 4. 大图浏览层（Lightbox） ---------- */
+/* 获取所有轮播小图元素、大图浏览层及其中的按钮/图片元素 */
 const sliderImgs = document.querySelectorAll('.slider-item img');
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
@@ -841,35 +1063,43 @@ const lightboxClose = document.getElementById('lightboxClose');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
 
+/* 打开大图：把当前轮播图（index 指向的那张）的大图地址塞进 lightboxImg 并显示；
+   同时停掉自动播放，避免看大图时轮播还在背后乱动 */
 function openLightbox(){
   lightboxOpen = true;
   lightboxImg.src = sliderImgs[index].src;
   lightbox.classList.add('show');
   clearInterval(timer);
 }
+/* 关闭大图：隐藏图层并恢复自动播放 */
 function closeLightbox(){
   lightboxOpen = false;
   lightbox.classList.remove('show');
   autoPlay();
 }
+/* 大图里"上一张"：轮播与看图用同一个 index，
+   所以翻大图的同时底下的轮播也同步切过去（取模实现首尾循环） */
 function goLightboxPrev(){
   index = (index - 1 + total) % total;
   changeSlide();
   lightboxImg.src = sliderImgs[index].src;
 }
+/* 大图里"下一张"：同上 */
 function goLightboxNext(){
   index = (index + 1) % total;
   changeSlide();
   lightboxImg.src = sliderImgs[index].src;
 }
 
-wrap.addEventListener('click', openLightbox);
-lightboxClose.addEventListener('click', closeLightbox);
-lightboxPrev.addEventListener('click', goLightboxPrev);
-lightboxNext.addEventListener('click', goLightboxNext);
+/* 各种打开/关闭/翻页的触发方式 */
+wrap.addEventListener('click', openLightbox);              /* 点击轮播图本体 → 打开大图 */
+lightboxClose.addEventListener('click', closeLightbox);    /* 点 × 关闭 */
+lightboxPrev.addEventListener('click', goLightboxPrev);    /* 点左箭头上一张 */
+lightboxNext.addEventListener('click', goLightboxNext);    /* 点右箭头下一张 */
 lightbox.addEventListener('click', e => {
-  if(e.target === lightbox) closeLightbox();
+  if(e.target === lightbox) closeLightbox();   /* 点大图周围的黑色空白区也关闭 */
 });
+/* 键盘操作：打开大图时，Esc 关闭、← → 翻页 */
 document.addEventListener('keydown', e => {
   if(!lightbox.classList.contains('show')) return;
   if(e.key === 'Escape') closeLightbox();
@@ -877,24 +1107,27 @@ document.addEventListener('keydown', e => {
   if(e.key === 'ArrowRight') goLightboxNext();
 });
 
-const btn = document.querySelector('.btn-link');
-const eggModal = document.getElementById('eggModal');
-const eggClose = document.getElementById('eggClose');
+/* ---------- 5. 彩蛋：连点 3 次"了解更多"播放视频 ---------- */
+const btn = document.querySelector('.btn-link');      /* "了解更多"按钮 */
+const eggModal = document.getElementById('eggModal');  /* 彩蛋弹窗 */
+const eggClose = document.getElementById('eggClose');  /* 弹窗关闭按钮 */
 
-let clickCount = 0;
-let clickTimer = null;
-let eggVideo = null;
+let clickCount = 0;     /* 3 秒内的点击计数 */
+let clickTimer = null;  /* 重置计数的定时器 */
+let eggVideo = null;    /* 动态创建的 <video> 元素引用 */
 
+/* 创建视频并全屏播放（彩蛋内容：video/rickroll.mp4，路径可改） */
 function openEggVideo() {
   eggVideo = document.createElement('video');
-  eggVideo.controls = true;
+  eggVideo.controls = true;                       /* 显示播放控件 */
   eggVideo.src = 'video/rickroll.mp4';
-  eggModal.appendChild(eggVideo);
+  eggModal.appendChild(eggVideo);                 /* 塞进弹窗 */
   eggModal.classList.add('show');
-  eggVideo.play().catch(err=>console.log("播放失败:",err));
-  clickCount = 0;
+  eggVideo.play().catch(err=>console.log("播放失败:",err));  /* 自动播放，失败打印日志 */
+  clickCount = 0;                                 /* 重置连击计数 */
 }
 
+/* 关闭彩蛋：隐藏弹窗并移除视频（释放内存/停止声音） */
 function closeEggVideo() {
   eggModal.classList.remove('show');
   if(eggVideo){
@@ -905,6 +1138,10 @@ function closeEggVideo() {
   }
 }
 
+/* "了解更多"按钮点击逻辑：
+   每点一次记 1 次；3 秒（3000 可调）内没有下一次点击就把计数清零。
+   达到 3 次 → 触发彩蛋视频；不足 3 次 → 平滑滚动到 #main 正文区。
+   注意 preventDefault() 拦掉了 <a> 的默认跳转，全部由这里手动控制 */
 btn.addEventListener('click', function(e) {
   clickCount++;
   clearTimeout(clickTimer);
@@ -918,11 +1155,12 @@ btn.addEventListener('click', function(e) {
   } else {
     e.preventDefault();
     const main = document.querySelector('#main');
-    const top = main.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({ top: top, behavior: 'smooth' });
+    const top = main.getBoundingClientRect().top + window.scrollY;  /* 算出 #main 的绝对 Y 坐标 */
+    window.scrollTo({ top: top, behavior: 'smooth' });              /* 平滑滚过去 */
   }
 });
 
+/* 关闭彩蛋的途径：点 ×、点弹窗空白处、按 Esc */
 eggClose.addEventListener('click', closeEggVideo);
 eggModal.addEventListener('click', e => {
   if (e.target === eggModal) closeEggVideo();
@@ -932,12 +1170,16 @@ document.addEventListener('keydown', e => {
 });
 
 
-const moreToggle = document.getElementById('moreToggle');
-const fullDropdown = document.getElementById('fullDropdown');
-const leftItems = document.querySelectorAll('.full-dropdown-item');
-const dropdownRight = document.getElementById('dropdownRight');
+/* ---------- 6. "更多"全屏下拉菜单 ---------- */
+const moreToggle = document.getElementById('moreToggle');   /* 顶栏的"更多" */
+const fullDropdown = document.getElementById('fullDropdown'); /* 下拉层 */
+const leftItems = document.querySelectorAll('.full-dropdown-item'); /* 左侧所有菜单项 */
+const dropdownRight = document.getElementById('dropdownRight');     /* 右侧内容区 */
 
 
+/* 菜单数据表：key 与 HTML 里 data-id 一一对应。
+   想改菜单项的文字/链接就在这里改：
+   title = 右侧大标题，desc = 说明文字，link = "前往查看"按钮跳的地址 */
 const menuData = {
   mod: {
     title: "MC联机",
@@ -967,6 +1209,7 @@ const menuData = {
 };
 
 
+/* 根据菜单编号 id 刷新右栏内容（标题+描述+按钮），并同步左侧高亮 */
 function updatePanel(id) {
   const data = menuData[id];
   dropdownRight.innerHTML = `
@@ -974,17 +1217,20 @@ function updatePanel(id) {
     <p class="full-dropdown-desc">${data.desc}</p>
     <a class="full-dropdown-link" href="${data.link}" target="_blank">前往查看</a>
   `;
+  /* 先去掉所有菜单项的高亮，再给当前项加高亮 */
   leftItems.forEach(item => item.classList.remove('active'));
   document.querySelector(`.full-dropdown-item[data-id="${id}"]`).classList.add('active');
 }
 
 
+/* 点"更多"→ 展开/收起下拉层（toggle 是"有就删、没有就加"的意思） */
 function toggleDropdown() {
   fullDropdown.classList.toggle('open');
 }
 moreToggle.addEventListener('click', toggleDropdown);
 
 
+/* 点左侧任意菜单项 → 用它的 data-id 更新右侧内容 */
 leftItems.forEach(item => {
   item.addEventListener('click', () => {
     updatePanel(item.dataset.id);
@@ -992,6 +1238,7 @@ leftItems.forEach(item => {
 });
 
 
+/* 按 Esc 收起下拉菜单 */
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
     fullDropdown.classList.remove('open');
@@ -999,6 +1246,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 
+/* 点击页面其它任意地方（既不在下拉菜单里、也不是"更多"本身）→ 收起菜单 */
 document.addEventListener('click', (e) => {
   if (!fullDropdown.contains(e.target) && e.target !== moreToggle) {
     fullDropdown.classList.remove('open');

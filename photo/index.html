@@ -1,14 +1,41 @@
-﻿<!DOCTYPE html>
+<!-- ============================================================================
+  文件说明：Kurlet（库乐特）图片展示页  /photo  →  photo/index.html
+  ----------------------------------------------------------------------------
+  这个页面是网站的"图片"栏目，功能如下：
+    1. 图片网格相册：把所有图片按每行 4 张（手机上 2 张/1 张）排成网格，
+       图片目前写在 JS 的 imgList 数组里（相对本页目录的 webp 文件名）
+    2. 分页浏览：每页固定显示 perPage 张（默认 12），配"上一页/下一页"按钮
+       —— 注意：目前图库一共只有 9 张图，不足一页，所以分页按钮暂不可用；
+         以后往 imgList 里加图（超过 12 张）分页就会自动生效
+    3. 大图浏览（Lightbox）：点任意缩略图会全屏放大看原图，
+       支持左右箭头翻图、Esc 关闭、点黑色背景关闭
+    4. 顶部导航 + "更多"全屏下拉菜单：与主页一致（联机服务入口）
+  背景图和主视觉风格与主页统一（photo/44.webp 半透明毛玻璃卡片相册）。
+  ----------------------------------------------------------------------------
+  注释约定：HTML/CSS/JS 的说明分别用各自注释语法写在对应代码块之前；
+  注释里写着"可调"的数值都可以直接修改来调整外观或行为。
+============================================================================ -->
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- 以下为页面头部信息，不在页面主体显示 -->
 <meta charset="UTF-8">
+<!-- 视口设置：页面宽度跟随设备宽度，移动端适配关键 -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!-- 浏览器标签页标题 -->
 <title>Kurlet-库乐特</title>
+<!-- 站点描述：给搜索引擎看的简介（不影响显示） -->
 <meta name="description" content="Kurlet—库乐特——简简单单没什么亮点的小破站，一些普通到不能再普通的功能。">
+<!-- canonical：声明本页正式网址，避免重复内容被判抄袭 -->
 <link rel="canonical" href="https://kurlet.com/">
+<!-- 网站图标 -->
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<!-- preload 预加载：提前下载首张图 44.webp，让页面一打开背景图就显示出来 -->
 <link rel="preload" href="44.webp" as="image">
 <style>
+/* ============================ 全局基础样式 ============================ */
+/* 通配符：清除所有元素默认内外边距、统一盒模型与字体。
+   可调：font-family 换成其它字体名可改全站默认字体 */
 *{
   margin: 0;
   padding: 0;
@@ -16,6 +43,8 @@
   font-family: system-ui, sans-serif;
 }
 
+/* 全屏固定背景层：把 44.webp 垫在整个页面底下（z-index:-1），滚动时背景不动。
+   可调：url() 换背景图；cover 表示按比例铺满裁切 */
 .bg-fixed {
   position: fixed;
   inset: 0;
@@ -24,10 +53,14 @@
 }
 body {
   min-height: 100vh;
-  padding: 0 20px;
-  padding-top: 70px;
+  padding: 0 20px;     /* 左右留 20px 边距，可调 */
+  padding-top: 70px;   /* 顶部留 70px，防止内容被固定导航栏盖住（导航高 60px+余量） */
 }
 
+/* ============================ 顶部导航栏 ============================ */
+/* 固定在屏幕顶端的半透明毛玻璃导航。
+   和主页不同的是本页导航始终显示（没有"滚下去才出现"的动画逻辑）。
+   可调：height 导航高度、gap 链接间距、background 透明度 */
 .top-nav{
   position: fixed;
   top: 0;
@@ -43,6 +76,7 @@ body {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+/* 导航链接：白色、无下划线；opacity 0.9 平时略透明 */
 .top-nav a{
   color: #fff;
   text-decoration: none;
@@ -50,11 +84,15 @@ body {
   opacity: 0.9;
   cursor: pointer;
 }
+/* 悬停时变亮 */
 .top-nav a:hover{
   opacity: 1;
 }
 
 
+/* ====================== "更多"全屏下拉菜单 ====================== */
+/* 全屏下拉层：占满导航栏以下的整屏，平时藏在屏幕外，JS 加 .open 才展开。
+   左右分两列（1:4），左列菜单项、右列介绍内容 */
 .full-dropdown {
   position: fixed;
   top: 60px;
@@ -65,25 +103,28 @@ body {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 998;
-  transform: translateY(-100%);
-  transition: transform 0.4s ease;
+  transform: translateY(-100%);     /* 默认整体移到屏幕上方之外 */
+  transition: transform 0.4s ease;  /* 展开动画 0.4 秒，可调 */
   display: grid;
-  grid-template-columns: 1fr 4fr;
+  grid-template-columns: 1fr 4fr;   /* 左右列宽度 1:4 */
   color: #fff;
-  pointer-events: none;
+  pointer-events: none;   /* 隐藏状态下不响应鼠标 */
   visibility: hidden;
 }
+/* .open：滑入屏幕并恢复可交互 */
 .full-dropdown.open {
   transform: translateY(0);
   pointer-events: auto;
   visibility: visible;
 }
 
+/* 左列：菜单项竖排容器，背景略深作区分 */
 .full-dropdown-left {
   background: rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
 }
+/* 单个菜单项：flex:1 平分左列高度，左侧预留 4px 高亮条位 */
 .full-dropdown-item {
   padding: 0 30px;
   flex: 1;
@@ -95,24 +136,29 @@ body {
   font-size: 16px;
   background: transparent;
 }
+/* 选中项：左侧橙色高亮条 + 背景变深（高亮色 #ffd288 可调） */
 .full-dropdown-item.active {
   background: rgba(0,0,0,0.35);
   border-left-color: #ffd288;
 }
+/* 悬停项：背景微微变亮 */
 .full-dropdown-item:hover {
   background: rgba(255,255,255,0.08);
 }
 
+/* 右列：当前选中菜单项的介绍内容区，整体垂直居中 */
 .full-dropdown-right {
   padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
+/* 右列大标题字号 */
 .full-dropdown-title {
   font-size: 26px;
   margin-bottom: 16px;
 }
+/* 右列说明文字：半透明、行高 1.7 易读，max-width 限制宽度更整齐 */
 .full-dropdown-desc {
   font-size: 16px;
   opacity: 0.85;
@@ -120,6 +166,7 @@ body {
   line-height: 1.7;
   max-width: 600px;
 }
+/* "前往查看"胶囊按钮 */
 .full-dropdown-link {
   display: inline-block;
   padding: 12px 30px;
@@ -134,7 +181,11 @@ body {
   background: #ffdfaa;
 }
 
+/* ---------- 手机（宽度 ≤720px）专属样式 ----------
+   可调：720px 是手机/平板分界线 */
 @media (max-width: 720px) {
+  /* 手机端把"页面滚动"关掉，改成只让中间相册区域内部滚动：
+     html/body 禁止滚动，避免地址栏伸缩 + 双层滚动打架 */
   html, body {
     overflow: hidden;
     height: 100%;
@@ -142,17 +193,19 @@ body {
   }
   body {
     min-height: 100svh;
-    padding: 0 12px;
+    padding: 0 12px;      /* 左右边距缩小 */
     padding-top: 70px;
   }
+  /* 相册外层容器变成"自己滚动"的方块：高度 = 屏幕高 - 100px 留白 */
   .wrap-box {
     height: calc(100svh - 100px);
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    -webkit-overflow-scrolling: touch;  /* iOS 惯性滚动 */
     overscroll-behavior: none;
     border-radius: 18px;
     margin: 10px auto;
   }
+  /* 网格容器同步圆角 */
   .gallery-grid {
     border-radius: 18px;
     margin: 0;
@@ -179,11 +232,16 @@ body {
   }
 }
 
+/* ============================ 相册主体布局 ============================ */
+/* 页面主体外层容器：最大宽度 98vw 并水平居中 */
 .wrap-box{
   max-width: 98vw;
   margin: 10px auto;
 }
 
+/* 图片网格容器：用 CSS Grid 排成 4 列，白色半透明圆角卡片。
+   可调：repeat(4,1fr) 的 4 是每行列数；gap 12px 是格子间距；
+   background 透明度 0.88 决定卡片透出背景图的程度 */
 .gallery-grid{
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -193,6 +251,9 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.12);
 }
+/* 单个图片格子：
+   aspect-ratio:16/9 强制每个格子是 16:9 横图比例（换 1/1 就变成正方形）；
+   overflow:hidden 裁掉超出部分；cursor:pointer 提示可点击看大图 */
 .gallery-item{
   border-radius: 12px;
   overflow: hidden;
@@ -201,9 +262,12 @@ body {
   transition: transform 0.2s ease;
   cursor: pointer;
 }
+/* 鼠标悬停时整格微微放大 3%，做出"浮起"的交互感。
+   可调：scale(1.03) 是放大倍率 */
 .gallery-item:hover{
   transform: scale(1.03);
 }
+/* 格子里的图片：铺满格子并按比例裁切不变形 */
 .gallery-item img{
   width: 100%;
   height: 100%;
@@ -211,13 +275,15 @@ body {
   display: block;
 }
 
+/* ---------- 分页条（上一页 / 页码 / 下一页） ---------- */
 .pagination{
   display: flex;
-  justify-content: center;
+  justify-content: center;   /* 水平居中 */
   align-items: center;
   gap: 16px;
   margin-top: 24px;
 }
+/* 分页按钮：橙色胶囊，样式与主页"前往查看"按钮统一 */
 .page-btn{
   padding: 10px 24px;
   border: none;
@@ -231,20 +297,26 @@ body {
 .page-btn:hover{
   background: #ffdfaa;
 }
+/* 按钮不可用时（第一页时"上一页"、最后一页时"下一页"）：
+   变灰、禁止鼠标手势 */
 .page-btn:disabled{
   background: rgba(0,0,0,0.2);
   color: #fff;
   cursor: not-allowed;
 }
+/* 中间"第 X 页 / 共 Y 页"文字：白色（因为背景是深色图片） */
 #pageInfo{
   color: #fff;
   font-size: 14px;
 }
 
 
+/* ---------- 响应式：屏幕变窄时减少列数 ---------- */
+/* ≤900px（平板/小屏笔记本）：改成每行 2 张 */
 @media (max-width: 900px){
   .gallery-grid{ grid-template-columns: repeat(2,1fr); }
 }
+/* ≤480px（手机）：改成每行 1 张，并加大网格内边距方便手指点击 */
 @media (max-width: 480px){
   .gallery-grid{ grid-template-columns: 1fr; }
   .gallery-grid {
@@ -253,6 +325,10 @@ body {
 }
 
 
+/* ===================== 大图浏览层（Lightbox） ===================== */
+/* 全屏黑色看图层：display:none 默认完全不存在；
+   JS 加 .active 类后用 display:flex 显示，图片与按钮居中。
+   （和主页用透明度淡入不同，这里用 display 切换，更简单直接） */
 .lightbox {
   position: fixed;
   inset: 0;
@@ -262,9 +338,11 @@ body {
   align-items: center;
   justify-content: center;
 }
+/* .active：显示图层 */
 .lightbox.active {
   display: flex;
 }
+/* 大图：最大 96vw×92vh，等比缩放完整显示不裁切 */
 .lightbox-img {
   max-width: 96vw;
   max-height: 92vh;
@@ -272,6 +350,7 @@ body {
   object-fit: contain;
   box-shadow: 0 0 40px #000;
 }
+/* 关闭按钮（×）：右上角白色半透明圆形 */
 .lightbox-close {
   position: absolute;
   top: 24px;
@@ -286,12 +365,13 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  user-select: none;
+  user-select: none;   /* 快速连点不会选中文字 */
   z-index: 10;
 }
 .lightbox-close:hover {
   background: rgba(255,255,255,0.3);
 }
+/* 左右翻图箭头（< >）：贴屏幕左右边缘、垂直居中 */
 .lightbox-btn {
   position: absolute;
   top: 50%;
@@ -315,17 +395,21 @@ body {
 </style>
 </head>
 <body>
+<!-- 全屏固定背景层（垫在最底层的背景图，见样式） -->
 <div class="bg-fixed"></div>
 
+<!-- 顶部导航：和主页同一套导航，当前页"图片"高亮不在这里体现，只是普通链接 -->
 <div class="top-nav">
   <a href="https://kurlet.com/photo">图片</a>
   <a href="#">视频</a>
   <a href="#">下载</a>
   <a href="#">支持</a>
   <a href="https://kurlet.com/">主页</a>
+  <!-- "更多"：没有地址，由 JS 控制展开下拉菜单 -->
   <a id="moreToggle">更多</a>
 </div>
 
+<!-- "更多"全屏下拉菜单（结构与主页一致，JS 会按 data-id 更新右栏） -->
 <div class="full-dropdown" id="fullDropdown">
   <div class="full-dropdown-left">
     <div class="full-dropdown-item active" data-id="mod">MC联机</div>
@@ -341,8 +425,12 @@ body {
   </div>
 </div>
 
+<!-- ===================== 相册主体 ===================== -->
 <div class="wrap-box">
+  <!-- 图片网格容器：里面是空的，由 JS 的 renderGallery() 根据 imgList
+       动态生成格子并填进去（这样加图/翻页只改 JS 数组即可） -->
   <div class="gallery-grid" id="galleryContainer"></div>
+  <!-- 分页条：JS 会更新中间的页码文字、控制按钮可用状态 -->
   <div class="pagination">
     <button class="page-btn" id="prevPage">上一页</button>
     <span id="pageInfo">第1页</span>
@@ -350,68 +438,95 @@ body {
   </div>
 </div>
 
+<!-- ===================== 大图浏览层（Lightbox） ===================== -->
+<!-- 默认隐藏；点缩略图后 JS 加 .active 并设置大图地址。
+     &times;=×、&lt;=<、&gt;=> 是 HTML 实体写法 -->
 <div class="lightbox" id="lightbox">
   <span class="lightbox-close" id="lightboxClose">&times;</span>
   <button class="lightbox-btn lightbox-prev" id="lightboxPrev">&lt;</button>
   <img class="lightbox-img" id="lightboxImg" src="" alt="大图预览">
   <button class="lightbox-btn lightbox-next" id="lightboxNext">&gt;</button>
 </div>
-
 <script>
+/* =====================================================================
+   本页脚本功能：
+   1. 维护图库列表 imgList（加图/删图改这里即可）
+   2. renderGallery()：按当前页从图库切片，动态生成图片网格
+   3. 分页：上一页/下一页按钮 + 页码文字更新
+   4. Lightbox：点缩略图看大图，左右翻、Esc/点背景关闭
+   5. 顶栏"更多"全屏下拉菜单（与主页相同的逻辑）
+   ===================================================================== */
+
+/* ---------- 1. 图库数据 ---------- */
+/* 图片文件名列表（文件放在本页同级目录 photo/ 里）。
+   想加图：把新的 webp 文件名加进这个数组即可，无需改 HTML */
 const imgList = [
   "11.webp","22.webp","33.webp","44.webp",
   "55.webp","66.webp","77.webp","88.webp","LXHCY.webp"
 ];
+/* 每页显示张数。可调：改成 4，这 9 张图就会分成 3 页，分页按钮就生效了 */
 const perPage = 12;
-let currentPage = 1;
+let currentPage = 1;   /* 当前页码，从 1 开始 */
+/* 总页数 = 向上取整（总张数 ÷ 每页张数） */
 const totalPage = Math.ceil(imgList.length / perPage);
 
-const container = document.getElementById('galleryContainer');
-const prevBtn = document.getElementById('prevPage');
-const nextBtn = document.getElementById('nextPage');
-const pageInfo = document.getElementById('pageInfo');
+/* ---------- 2. 获取页面元素 ---------- */
+const container = document.getElementById('galleryContainer');  /* 图片网格容器 */
+const prevBtn = document.getElementById('prevPage');             /* 上一页按钮 */
+const nextBtn = document.getElementById('nextPage');             /* 下一页按钮 */
+const pageInfo = document.getElementById('pageInfo');            /* 页码文字 */
 
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = document.getElementById('lightboxImg');
-const lightboxClose = document.getElementById('lightboxClose');
-const lightboxPrev = document.getElementById('lightboxPrev');
-const lightboxNext = document.getElementById('lightboxNext');
-let lightboxIndex = 0;
+const lightbox = document.getElementById('lightbox');            /* 大图浏览层 */
+const lightboxImg = document.getElementById('lightboxImg');      /* 大图 img */
+const lightboxClose = document.getElementById('lightboxClose');  /* 关闭按钮 */
+const lightboxPrev = document.getElementById('lightboxPrev');    /* 大图里上一张 */
+const lightboxNext = document.getElementById('lightboxNext');    /* 大图里下一张 */
+let lightboxIndex = 0;   /* 当前看的是第几张（在整个 imgList 里的下标） */
 
+/* ---------- 3. 大图浏览（Lightbox） ---------- */
+/* 打开大图：把第 idx 张图的大图地址赋给 lightboxImg 并显示；
+   同时锁住 body 滚动，避免看大图时背景页面还能滚 */
 function openLightbox(idx){
   lightboxIndex = idx;
   lightboxImg.src = imgList[idx];
   lightbox.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
+/* 关闭大图：隐藏图层、清空大图地址、恢复页面滚动 */
 function closeLightbox(){
   lightbox.classList.remove('active');
   lightboxImg.src = '';
   document.body.style.overflow = '';
 }
+/* 大图"上一张"：下标 -1 后取模，实现"第一张往前翻回到最后一张"的循环 */
 function goLightboxPrev(){
   lightboxIndex = (lightboxIndex - 1 + imgList.length) % imgList.length;
   lightboxImg.src = imgList[lightboxIndex];
 }
+/* 大图"下一张"：下标 +1 取模，最后一张往后翻回到第一张 */
 function goLightboxNext(){
   lightboxIndex = (lightboxIndex + 1) % imgList.length;
   lightboxImg.src = imgList[lightboxIndex];
 }
 
+/* ---------- 4. 渲染图片网格 ---------- */
 function renderGallery(){
-  container.innerHTML = '';
+  container.innerHTML = '';                       /* 先清空旧内容再重建 */
+  /* 算出当前页应显示哪些图：从 start 到 end 的下标区间 */
   const start = (currentPage - 1) * perPage;
   const end = start + perPage;
-  const pageImgs = imgList.slice(start, end);
+  const pageImgs = imgList.slice(start, end);      /* 切出本页的图片子数组 */
 
+  /* 为每张图创建一个格子 div + img，并绑定点击看大图 */
   pageImgs.forEach((src, i)=>{
     const div = document.createElement('div');
     div.className = 'gallery-item';
     const img = document.createElement('img');
     img.src = src;
-    img.loading = 'lazy';
+    img.loading = 'lazy';        /* 懒加载：滚到附近才下载，省流量 */
     img.alt = '图片';
-    
+
+    /* 点击第 i 张（i 是本页内的序号）→ 打开整图列表里第 start+i 张的大图 */
     img.addEventListener('click', ()=>{
       openLightbox(start + i);
     });
@@ -419,23 +534,28 @@ function renderGallery(){
     container.appendChild(div);
   });
 
+  /* 更新页码文字；第一页禁用"上一页"、最后一页禁用"下一页" */
   pageInfo.textContent = `第${currentPage}页 / 共${totalPage}页`;
   prevBtn.disabled = currentPage <= 1;
   nextBtn.disabled = currentPage >= totalPage;
 }
 
+/* 下面这个 closeLightbox 是重复定义（和上面的完全一样）。
+   JS 里同名 function 后者覆盖前者，功能不变，保留无妨 */
 function closeLightbox(){
   lightbox.classList.remove('active');
   lightboxImg.src = '';
   document.body.style.overflow = '';
 }
 
+/* 大图层的各种触发：× 关闭、左右箭头翻图、点黑色背景关闭 */
 lightboxClose.addEventListener('click', closeLightbox);
 lightboxPrev.addEventListener('click', goLightboxPrev);
 lightboxNext.addEventListener('click', goLightboxNext);
 lightbox.addEventListener('click', (e)=>{
-  if(e.target === lightbox) closeLightbox();
+  if(e.target === lightbox) closeLightbox();   /* 点在大图层本体（黑色区域）上才关闭 */
 });
+/* 键盘控制：大图打开时按 Esc 关闭、← → 翻图 */
 document.addEventListener('keydown', (e)=>{
   if(!lightbox.classList.contains('active')) return;
   if(e.key === 'Escape') closeLightbox();
@@ -443,21 +563,28 @@ document.addEventListener('keydown', (e)=>{
   if(e.key === 'ArrowRight') goLightboxNext();
 });
 
+/* ---------- 5. 分页按钮 ---------- */
+/* 上一页：页码减 1 并重新渲染（已在第一页则什么都不做） */
 prevBtn.onclick = ()=>{
   if(currentPage>1){ currentPage--; renderGallery(); }
 }
+/* 下一页：页码加 1 并重新渲染（已在最后一页则什么都不做） */
 nextBtn.onclick = ()=>{
   if(currentPage<totalPage){ currentPage++; renderGallery(); }
 }
 
+/* 页面加载完成立即渲染第一页 */
 renderGallery();
 
 
-const moreToggle = document.getElementById('moreToggle');
-const fullDropdown = document.getElementById('fullDropdown');
-const leftItems = document.querySelectorAll('.full-dropdown-item');
-const dropdownRight = document.getElementById('dropdownRight');
+/* ---------- 6. "更多"全屏下拉菜单（与主页逻辑一致） ---------- */
+const moreToggle = document.getElementById('moreToggle');      /* 顶栏"更多" */
+const fullDropdown = document.getElementById('fullDropdown');  /* 下拉层 */
+const leftItems = document.querySelectorAll('.full-dropdown-item');  /* 左栏菜单项们 */
+const dropdownRight = document.getElementById('dropdownRight');       /* 右栏内容区 */
 
+/* 菜单数据：key 与 HTML 里 data-id 对应，title/desc/link 就是右栏显示的
+   标题、介绍、按钮地址。改菜单内容改这里即可 */
 const menuData = {
   mod: {
     title: "MC联机",
@@ -486,6 +613,7 @@ const menuData = {
   }
 };
 
+/* 根据菜单编号刷新右栏内容，并同步左侧选中高亮 */
 function updatePanel(id) {
   const data = menuData[id];
   dropdownRight.innerHTML = `
@@ -493,27 +621,32 @@ function updatePanel(id) {
     <p class="full-dropdown-desc">${data.desc}</p>
     <a class="full-dropdown-link" href="${data.link}" target="_blank">前往查看</a>
   `;
+  /* 先清掉所有菜单项的 active，再给当前项加上 */
   leftItems.forEach(item => item.classList.remove('active'));
   document.querySelector(`.full-dropdown-item[data-id="${id}"]`).classList.add('active');
 }
 
+/* 点"更多"：在展开/收起之间切换 */
 function toggleDropdown() {
   fullDropdown.classList.toggle('open');
 }
 moreToggle.addEventListener('click', toggleDropdown);
 
+/* 点左栏菜单项：用它的 data-id 更新右栏 */
 leftItems.forEach(item => {
   item.addEventListener('click', () => {
     updatePanel(item.dataset.id);
   });
 });
 
+/* 按 Esc 收起菜单 */
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
     fullDropdown.classList.remove('open');
   }
 });
 
+/* 点菜单以外的空白区域收起菜单 */
 document.addEventListener('click', (e) => {
   if (!fullDropdown.contains(e.target) && e.target !== moreToggle) {
     fullDropdown.classList.remove('open');

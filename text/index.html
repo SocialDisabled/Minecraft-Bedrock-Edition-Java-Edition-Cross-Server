@@ -1,14 +1,38 @@
-﻿<!DOCTYPE html>
+<!-- ============================================================================
+  文件说明：Kurlet（库乐特）文字阅读页  /text  →  text/index.html
+  ----------------------------------------------------------------------------
+  这个页面是网站的"文字"栏目（主页左下角那个几乎看不见的 "." 就链到这里）：
+    1. 翻页式阅读：JS 的 textPages 数组里存了若干段"文字页"，
+       用"上一页 / 下一页"按钮逐页翻阅，页码显示在中间
+       —— 内容依次是几句玩笑话，最后是一大段仿古"编年史"风格的故事
+    2. 想改文字：直接编辑脚本里 textPages 数组（每段一个反引号字符串，
+       里面的换行会被保留显示）；想加页就往数组里再加一段
+    3. 顶部导航 + "更多"全屏下拉菜单：与主页/图片页一致
+  注：本页读取的是根目录 photo/44.webp 作为背景（路径带前导斜杠 = 站根目录）。
+  ----------------------------------------------------------------------------
+  注释约定：HTML/CSS/JS 的说明分别用各自注释语法写在对应代码块之前；
+  注释里写着"可调"的数值都可以直接修改来调整外观或行为。
+============================================================================ -->
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<!-- 页面头部信息（不显示在页面主体） -->
 <meta charset="UTF-8">
+<!-- 视口设置：页面宽度跟随设备宽度，移动端适配关键 -->
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!-- 浏览器标签页标题 -->
 <title>Kurlet-库乐特</title>
+<!-- 站点描述：给搜索引擎看的简介 -->
 <meta name="description" content="Kurlet—库乐特——简简单单没什么亮点的小破站，一些普通到不能再普通的功能。">
+<!-- canonical：声明本页正式网址 -->
 <link rel="canonical" href="https://kurlet.com/">
+<!-- 网站图标 -->
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
+<!-- preload 预加载背景图 44.webp（注意 /photo/ 开头是"网站根目录"下的路径） -->
 <link rel="preload" href="/photo/44.webp" as="image">
 <style>
+/* ============================ 全局基础样式 ============================ */
+/* 通配符：清除默认内外边距、统一盒模型与字体 */
 *{
   margin: 0;
   padding: 0;
@@ -17,6 +41,7 @@
 }
 
 
+/* 全屏固定背景层：用根目录 photo/44.webp 当背景垫底，滚动时不动 */
 .bg-fixed {
   position: fixed;
   inset: 0;
@@ -25,11 +50,13 @@
 }
 body {
   min-height: 100vh;
-  padding: 0 20px;
-  padding-top: 70px;
+  padding: 0 20px;     /* 左右边距 20px */
+  padding-top: 70px;   /* 顶部留 70px，避开固定导航栏 */
 }
 
 
+/* ============================ 顶部导航栏 ============================ */
+/* 固定在屏幕顶端的半透明毛玻璃导航（本页一直显示） */
 .top-nav{
   position: fixed;
   top: 0;
@@ -45,6 +72,7 @@ body {
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+/* 导航链接：白色、无下划线 */
 .top-nav a{
   color: #fff;
   text-decoration: none;
@@ -57,6 +85,9 @@ body {
 }
 
 
+/* ====================== "更多"全屏下拉菜单 ====================== */
+/* 全屏下拉层：占满导航栏以下整屏，默认藏在屏幕外，JS 加 .open 展开。
+   左右两列 1:4（左菜单项、右介绍内容） */
 .full-dropdown {
   position: fixed;
   top: 60px;
@@ -68,7 +99,7 @@ body {
   -webkit-backdrop-filter: blur(6px);
   z-index: 998;
   transform: translateY(-100%);
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease;   /* 展开动画 0.4 秒 */
   display: grid;
   grid-template-columns: 1fr 4fr;
   color: #fff;
@@ -81,11 +112,13 @@ body {
   visibility: visible;
 }
 
+/* 左列菜单容器 */
 .full-dropdown-left {
   background: rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
 }
+/* 单个菜单项：flex:1 平分高度，左侧预留 4px 高亮条 */
 .full-dropdown-item {
   padding: 0 30px;
   flex: 1;
@@ -97,14 +130,17 @@ body {
   font-size: 16px;
   background: transparent;
 }
+/* 选中项：橙色高亮条 + 深色背景 */
 .full-dropdown-item.active {
   background: rgba(0,0,0,0.35);
   border-left-color: #ffd288;
 }
+/* 悬停项背景微微变亮 */
 .full-dropdown-item:hover {
   background: rgba(255,255,255,0.08);
 }
 
+/* 右栏介绍内容区，垂直居中 */
 .full-dropdown-right {
   padding: 40px;
   display: flex;
@@ -122,6 +158,7 @@ body {
   line-height: 1.7;
   max-width: 600px;
 }
+/* "前往查看"胶囊按钮 */
 .full-dropdown-link {
   display: inline-block;
   padding: 12px 30px;
@@ -136,6 +173,7 @@ body {
   background: #ffdfaa;
 }
 
+/* ---------- 手机（宽度 ≤720px）通用缩小 ---------- */
 @media (max-width: 720px) {
   .top-nav {
     gap: 12px;
@@ -159,12 +197,18 @@ body {
 }
 
 
+/* ============================ 正文区域 ============================ */
+/* 外层容器：最大宽度 98vw、水平居中、上下留 20px 边距 */
 .wrap-box{
   max-width: 98vw;
   margin: 20px auto;
 }
 
 
+/* 文字卡片：白色半透明圆角大卡片，里面放当前页的文字。
+   white-space:pre-wrap 是重点 —— 它会保留文字里的换行（就像 <pre>），
+   所以 textPages 里每段文字写几行、显示时就换几行；
+   line-height 1.8 是行距，font-size 16px 是字号，都可调 */
 .text-box{
   width: 100%;
   padding: 40px 32px;
@@ -177,6 +221,9 @@ body {
   white-space: pre-wrap; 
 }
 
+/* ---------- 手机（≤720px）专属布局 ----------
+   思路：整页禁止滚动，只让中间的文字卡片区域自己滚动，
+   并把"上一页/下一页"按钮固定在屏幕底部，方便单手操作 */
 @media (max-width: 720px) {
   html, body {
     overflow: hidden;
@@ -188,8 +235,9 @@ body {
     padding: 0 12px;
     padding-top: 70px;
   }
+  /* 卡片容器变成本页唯一的滚动区域 */
   .wrap-box {
-    height: calc(100svh - 180px);
+    height: calc(100svh - 180px);   /* 高度预留顶部导航和底部按钮的空间 */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
@@ -197,6 +245,7 @@ body {
     margin: 10px auto;
     position: relative;
   }
+  /* 卡片内部样式适配 */
   .text-box {
     border-radius: 18px;
     margin: 0;
@@ -204,6 +253,7 @@ body {
     padding: 24px 16px;
     font-size: 15px;
   }
+  /* 分页按钮条改成固定悬浮在屏幕底部居中 */
   .pagination {
     position: fixed;
     bottom: 40px;
@@ -211,7 +261,7 @@ body {
     transform: translateX(-50%);
     z-index: 2;
     width: auto;
-    white-space: nowrap;
+    white-space: nowrap;   /* 防止文字换行 */
   }
   .page-btn {
     white-space: nowrap;
@@ -223,6 +273,8 @@ body {
 }
 
 
+/* ============================ 分页按钮条 ============================ */
+/* 桌面端：位于卡片下方、水平居中 */
 .pagination{
   display: flex;
   justify-content: center;
@@ -230,6 +282,7 @@ body {
   gap: 16px;
   margin-top: 24px;
 }
+/* 上一页/下一页按钮：橙色胶囊样式 */
 .page-btn{
   padding: 10px 24px;
   border: none;
@@ -243,11 +296,13 @@ body {
 .page-btn:hover{
   background: #ffdfaa;
 }
+/* 禁用状态：第一页"上一页"、最后一页"下一页"变灰 */
 .page-btn:disabled{
   background: rgba(0,0,0,0.2);
   color: #fff;
   cursor: not-allowed;
 }
+/* 中间的"第 X 页 / 共 Y 页"文字 */
 #pageInfo{
   color: #fff;
   font-size: 14px;
@@ -256,18 +311,22 @@ body {
 </head>
 <body>
 
+<!-- 全屏固定背景层 -->
 <div class="bg-fixed"></div>
 
 
+<!-- 顶部导航（与主页/图片页一致） -->
 <div class="top-nav">
   <a href="https://kurlet.com/photo">图片</a>
   <a href="#">视频</a>
   <a href="#">下载</a>
   <a href="#">支持</a>
   <a href="https://kurlet.com/">主页</a>
+  <!-- "更多"：由 JS 控制展开下拉菜单 -->
   <a id="moreToggle">更多</a>
 </div>
 
+<!-- "更多"全屏下拉菜单 -->
 <div class="full-dropdown" id="fullDropdown">
   <div class="full-dropdown-left">
     <div class="full-dropdown-item active" data-id="mod">MC联机</div>
@@ -283,22 +342,39 @@ body {
   </div>
 </div>
 
+<!-- ===================== 正文阅读区 ===================== -->
 <div class="wrap-box">
 
+  <!-- 文字卡片：显示当前页文字。里面这行"这是一个文本"只是占位，
+       页面加载后 JS 的 renderText() 会立刻用 textPages[0] 覆盖它 -->
   <div class="text-box" id="textContainer">
 这是一个文本
   </div>
 
 
+  <!-- 分页按钮：上一页 / 页码 / 下一页，由 JS 控制 -->
   <div class="pagination">
     <button class="page-btn" id="prevPage">上一页</button>
     <span id="pageInfo">第1页 / 共1页</span>
     <button class="page-btn" id="nextPage">下一页</button>
   </div>
 </div>
-
 <script>
+/* =====================================================================
+   本页脚本功能：
+   1. textPages 数组：存放每一"页"要显示的文字
+      （后面紧跟着的一大段反引号字符串数组就是内容，按原样保留）
+   2. renderText()：把当前页文字写进卡片、更新页码、控制按钮可用状态
+   3. "上一页 / 下一页"按钮翻页
+   4. 顶栏"更多"全屏下拉菜单（与主页相同的逻辑）
+   加文字/加页：只需往 textPages 数组里加反引号字符串即可；
+   每页可有多行，显示时会按原样保留换行。
+   ===================================================================== */
 
+/* ---------- 1. 文字内容数组 ---------- */
+/* 下面这个数组里每一段用反引号 ` 包起来，就是"一页"文字。
+   前几段是玩笑话，最后一段是仿古风的长篇故事。
+   数组由代码原样保留，未做改动 */
 const textPages = [
 `你好哇，这里啥也没有
 `,
@@ -429,15 +505,18 @@ const textPages = [
 
 ];
 
-let currentPage = 1;
-const totalPage = textPages.length;
+/* ---------- 2. 翻页浏览逻辑 ---------- */
+let currentPage = 1;                  /* 当前页号（从 1 开始） */
+const totalPage = textPages.length;   /* 总页数 = 数组里有多少段文字 */
 
-const textContainer = document.getElementById('textContainer');
-const prevBtn = document.getElementById('prevPage');
-const nextBtn = document.getElementById('nextPage');
-const pageInfo = document.getElementById('pageInfo');
+/* 取页面上的相关元素 */
+const textContainer = document.getElementById('textContainer');  /* 文字卡片 */
+const prevBtn = document.getElementById('prevPage');             /* 上一页按钮 */
+const nextBtn = document.getElementById('nextPage');             /* 下一页按钮 */
+const pageInfo = document.getElementById('pageInfo');            /* 页码文字 */
 
-
+/* 渲染当前页：把第 currentPage 段文字写进卡片、更新页码文字、
+   第一页禁用"上一页"、最后一页禁用"下一页" */
 function renderText(){
   textContainer.innerText = textPages[currentPage - 1];
   pageInfo.textContent = `第${currentPage}页 / 共${totalPage}页`;
@@ -446,6 +525,7 @@ function renderText(){
 }
 
 
+/* 上一页：页号减 1 并重新渲染（在第一页时不响应） */
 prevBtn.onclick = ()=>{
   if(currentPage > 1){
     currentPage--;
@@ -453,6 +533,7 @@ prevBtn.onclick = ()=>{
   }
 }
 
+/* 下一页：页号加 1 并重新渲染（在最后一页时不响应） */
 nextBtn.onclick = ()=>{
   if(currentPage < totalPage){
     currentPage++;
@@ -461,14 +542,18 @@ nextBtn.onclick = ()=>{
 }
 
 
+/* 页面加载完成立即显示第 1 页 */
 renderText();
 
 
+/* ---------- 3. "更多"全屏下拉菜单（与主页逻辑一致） ---------- */
 const moreToggle = document.getElementById('moreToggle');
 const fullDropdown = document.getElementById('fullDropdown');
 const leftItems = document.querySelectorAll('.full-dropdown-item');
 const dropdownRight = document.getElementById('dropdownRight');
 
+/* 菜单数据：key 与 data-id 对应，title/desc/link 分别对应右栏
+   标题、说明文字、"前往查看"按钮的跳转地址 */
 const menuData = {
   mod: {
     title: "MC联机",
@@ -497,6 +582,7 @@ const menuData = {
   }
 };
 
+/* 根据菜单编号刷新右栏内容，并同步左侧高亮 */
 function updatePanel(id) {
   const data = menuData[id];
   dropdownRight.innerHTML = `
@@ -508,23 +594,27 @@ function updatePanel(id) {
   document.querySelector(`.full-dropdown-item[data-id="${id}"]`).classList.add('active');
 }
 
+/* 点"更多"展开/收起菜单 */
 function toggleDropdown() {
   fullDropdown.classList.toggle('open');
 }
 moreToggle.addEventListener('click', toggleDropdown);
 
+/* 点左栏菜单项 → 更新右栏 */
 leftItems.forEach(item => {
   item.addEventListener('click', () => {
     updatePanel(item.dataset.id);
   });
 });
 
+/* 按 Esc 收起菜单 */
 document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape') {
     fullDropdown.classList.remove('open');
   }
 });
 
+/* 点击菜单之外的区域收起菜单 */
 document.addEventListener('click', (e) => {
   if (!fullDropdown.contains(e.target) && e.target !== moreToggle) {
     fullDropdown.classList.remove('open');
